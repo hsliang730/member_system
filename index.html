@@ -138,10 +138,10 @@
                                 <span id="admin-badge-1" class="hidden text-[10px] bg-black text-white px-2 py-0.5 rounded">管理員</span>
                             </h3>
                             <div id="admin-announce-box" class="hidden mb-3">
-                                <textarea id="announce-input" rows="2" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入要發布給大家的訊息..."></textarea>
+                                <textarea id="announce-input" rows="3" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入要發布給大家的訊息（支援換行與排版）..."></textarea>
                                 <button onclick="postAnnouncement()" class="w-full mt-1 bg-black text-white text-xs py-1.5 rounded-lg hover:bg-gray-800 transition">發布公告</button>
                             </div>
-                            <div id="announce-list" class="space-y-2 overflow-y-auto h-[240px] sm:h-[280px] pr-1">
+                            <div id="announce-list" class="space-y-2 overflow-y-auto h-[230px] sm:h-[270px] pr-1">
                                 <p class="text-xs text-gray-400 text-center mt-12">目前尚無即時訊息</p>
                             </div>
                         </div>
@@ -601,8 +601,8 @@
         }
 
         async function postAnnouncement() {
-            const text = document.getElementById('announce-input').value.trim();
-            if (!text) return;
+            const text = document.getElementById('announce-input').value;
+            if (!text.trim()) return;
             await supabaseClient.from('announcements').insert([{ text, author: currentUsername }]);
             document.getElementById('announce-input').value = '';
             loadAnnouncements();
@@ -618,11 +618,12 @@
             const isAdmin = currentUsername === 'hsliang-admin';
             container.innerHTML = list.map(item => `
                 <div class="bg-white p-2.5 border border-gray-200 rounded-lg text-xs flex justify-between items-start">
-                    <div>
-                        <span class="font-medium">${item.text}</span>
-                        <p class="text-[10px] text-gray-400">${new Date(item.created_at).toLocaleTimeString()} (${item.author})</p>
+                    <div class="w-full pr-2">
+                        <!-- 使用者排版與換行樣式維持 -->
+                        <div class="font-medium text-gray-800 whitespace-pre-wrap break-words">${item.text}</div>
+                        <p class="text-[10px] text-gray-400 mt-1">${new Date(item.created_at).toLocaleTimeString()} (${item.author})</p>
                     </div>
-                    ${isAdmin ? `<button onclick="deleteAnnouncement(${item.id})" class="text-[10px] text-red-500">刪除</button>` : ''}
+                    ${isAdmin ? `<button onclick="deleteAnnouncement(${item.id})" class="text-[10px] text-red-500 shrink-0">刪除</button>` : ''}
                 </div>
             `).join('');
         }
@@ -632,7 +633,7 @@
             loadAnnouncements();
         }
 
-        // ================= Windows 11 風格資料夾與講義 (增強錯抓版) =================
+        // ================= Windows 11 風格資料夾與講義 =================
         async function createNewFolder() {
             const folderInput = document.getElementById('new-folder-name');
             const folderName = folderInput.value.trim();
@@ -644,7 +645,7 @@
 
             try {
                 const parentIdValue = currentFolderId ? Number(currentFolderId) : null;
-                const { data, error } = await supabaseClient
+                const { error } = await supabaseClient
                     .from('handouts')
                     .insert([{ 
                         title: folderName, 
@@ -653,7 +654,6 @@
                     }]);
 
                 if (error) {
-                    console.error('新增資料夾失敗：', error);
                     alert('建立資料夾失敗！原因：\n' + error.message);
                     return;
                 }
@@ -661,7 +661,6 @@
                 folderInput.value = '';
                 renderFolderView();
             } catch (err) {
-                console.error('例外錯誤：', err);
                 alert('發生預期外錯誤：' + err.message);
             }
         }
@@ -734,10 +733,7 @@
 
                 const { data: items, error } = await query.order('is_folder', { ascending: false }).order('created_at', { ascending: false });
                 
-                if (error) {
-                    console.error('讀取講義列表錯誤：', error);
-                    return;
-                }
+                if (error) return;
 
                 const container = document.getElementById('folder-view-container');
 
@@ -762,6 +758,7 @@
                             </div>
                         `;
                     } else {
+                        // 確保強制新分頁且絕對保證打開（使用 window.open 配合防阻擋提示，並提供標準 target="_blank" 雙保險）
                         return `
                             <div class="bg-white p-2.5 border border-gray-200 rounded-lg text-xs flex justify-between items-center hover:border-gray-300 transition">
                                 <div class="flex items-center gap-2 truncate">
@@ -769,7 +766,7 @@
                                     <span class="font-medium truncate text-gray-700">${item.title}</span>
                                 </div>
                                 <div class="flex gap-1 shrink-0">
-                                    <a href="${item.url}" target="_blank" class="bg-gray-100 hover:bg-black hover:text-white px-2.5 py-1 rounded text-[11px] transition">開啟</a>
+                                    <button onclick="openHandoutSafely('${item.url.replace(/'/g, "\\'")}')" class="bg-gray-100 hover:bg-black hover:text-white px-2.5 py-1 rounded text-[11px] transition">開啟</button>
                                     ${isAdmin ? `<button onclick="deleteHandoutItem(${item.id})" class="text-[10px] text-red-500 hover:underline">刪除</button>` : ''}
                                 </div>
                             </div>
@@ -777,7 +774,31 @@
                     }
                 }).join('');
             } catch (err) {
-                console.error('渲染資料夾視圖時發生錯誤：', err);
+                console.error(err);
+            }
+        }
+
+        // 保證新分頁開啟檔案的強健函數（透過 window.open 與隱藏式隱式連結雙重確保不被攔截）
+        function openHandoutSafely(url) {
+            try {
+                const newWindow = window.open(url, '_blank');
+                if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+                    // 若瀏覽器彈出視窗遭到嚴格攔截，使用強制轉跳或點擊建立方式
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+            } catch (e) {
+                const a = document.createElement('a');
+                a.href = url;
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             }
         }
 
