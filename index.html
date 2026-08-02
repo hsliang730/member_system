@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Windows 11 風格卡片 */
         .win11-folder {
             background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
             border: 1px solid #d0e1f9;
@@ -147,23 +146,30 @@
                         </div>
                     </div>
 
-                    <!-- 2. 數學講義檔案 (直接同步 OneDrive 資料夾) -->
+                    <!-- 2. 數學講義檔案 (支援自訂資料夾與 OneDrive) -->
                     <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col justify-between h-[380px] sm:h-[420px]">
                         <div class="h-full flex flex-col">
-                            <div class="flex justify-between items-center mb-3">
-                                <h3 class="text-sm font-medium uppercase tracking-wider text-gray-800 flex items-center gap-1.5">
-                                    <span>2. 數學講義檔案 (OneDrive 同步)</span>
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="text-sm font-medium uppercase tracking-wider text-gray-800 flex items-center gap-1">
+                                    <span>📂 2. 數學講義檔案庫</span>
                                 </h3>
-                                <a href="https://o365oid-my.sharepoint.com/:f:/g/personal/ssh107182_ms_edu_tw/IgAhKLfnpPkcSJezbimkqwhHASBjF1WifyA4Z2pyq9PESq4?e=EZY6aM" target="_blank" class="text-[10px] bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 transition">在新分頁開啟 🔗</a>
+                                <button id="add-folder-btn" onclick="toggleAddFolderModal()" class="hidden text-[10px] bg-black text-white px-2 py-1 rounded hover:bg-gray-800 transition">+ 新增項目</button>
                             </div>
 
-                            <!-- OneDrive 雲端資料夾嵌入視窗 -->
-                            <div class="flex-1 bg-white border border-gray-200 rounded-lg overflow-hidden shadow-inner">
-                                <iframe 
-                                    src="https://o365oid-my.sharepoint.com/:f:/g/personal/ssh107182_ms_edu_tw/IgAhKLfnpPkcSJezbimkqwhHASBjF1WifyA4Z2pyq9PESq4?e=EZY6aM" 
-                                    class="w-full h-full border-0" 
-                                    allowfullscreen>
-                                </iframe>
+                            <!-- 管理員新增資料夾/連結Modal框 -->
+                            <div id="add-folder-modal" class="hidden bg-white border border-gray-200 rounded-lg p-2.5 mb-2 shadow-sm space-y-2 text-xs">
+                                <p class="font-medium text-gray-700">新增講義項目：</p>
+                                <input type="text" id="folder-name-input" class="w-full p-1.5 border border-gray-200 rounded" placeholder="名稱 (例如：國二上數學講義)">
+                                <input type="text" id="folder-url-input" class="w-full p-1.5 border border-gray-200 rounded" placeholder="OneDrive 連結 (若為分類可不填)">
+                                <div class="flex justify-end gap-2">
+                                    <button onclick="toggleAddFolderModal()" class="px-2 py-1 bg-gray-100 text-gray-600 rounded">取消</button>
+                                    <button onclick="addNewFolder()" class="px-2 py-1 bg-blue-600 text-white rounded">建立</button>
+                                </div>
+                            </div>
+
+                            <!-- 資料夾與檔案清單區域 -->
+                            <div id="folder-list-container" class="flex-1 bg-white border border-gray-200 rounded-lg p-3 overflow-y-auto space-y-2">
+                                <p class="text-xs text-gray-400 text-center mt-12">載入資料夾中...</p>
                             </div>
                         </div>
                     </div>
@@ -370,6 +376,9 @@
         let selectedAdminChatUser = null;
         let siteConfigs = {};
 
+        // 預設 OneDrive 資料夾
+        const DEFAULT_ONEDRIVE_URL = 'https://o365oid-my.sharepoint.com/:f:/g/personal/ssh107182_ms_edu_tw/IgAhKLfnpPkcSJezbimkqwhHASBjF1WifyA4Z2pyq9PESq4?e=EZY6aM';
+
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('remember_username');
             const savedPass = localStorage.getItem('remember_password');
@@ -480,6 +489,7 @@
 
             loadSiteConfig();
             loadAnnouncements();
+            loadFolders();
             loadForumMessages();
             loadGrades();
             loadUserFaqChat();
@@ -491,6 +501,9 @@
         function listenRealtimeUpdates() {
             supabaseClient.channel('public:announcements')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => loadAnnouncements()).subscribe();
+
+            supabaseClient.channel('public:folders')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'folders' }, () => loadFolders()).subscribe();
 
             supabaseClient.channel('public:forum_messages')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'forum_messages' }, () => loadForumMessages()).subscribe();
@@ -560,6 +573,7 @@
             const isAdmin = currentUsername === 'hsliang-admin';
             document.getElementById('admin-badge-1').classList.toggle('hidden', !isAdmin);
             document.getElementById('admin-announce-box').classList.toggle('hidden', !isAdmin);
+            document.getElementById('add-folder-btn').classList.toggle('hidden', !isAdmin);
             document.getElementById('admin-faq-management-section').classList.toggle('hidden', !isAdmin);
             document.getElementById('th-action-header').classList.toggle('hidden', !isAdmin);
             document.getElementById('admin-settings-section').classList.toggle('hidden', !isAdmin);
@@ -574,6 +588,72 @@
             });
         }
 
+        // ================= 2. 講義與資料夾管理系統 =================
+        function toggleAddFolderModal() {
+            document.getElementById('add-folder-modal').classList.toggle('hidden');
+        }
+
+        async function addNewFolder() {
+            const name = document.getElementById('folder-name-input').value.trim();
+            const url = document.getElementById('folder-url-input').value.trim();
+            if (!name) { alert('請輸入名稱'); return; }
+
+            await supabaseClient.from('folders').insert([{ name, url: url || DEFAULT_ONEDRIVE_URL }]);
+            document.getElementById('folder-name-input').value = '';
+            document.getElementById('folder-url-input').value = '';
+            toggleAddFolderModal();
+            loadFolders();
+        }
+
+        async function loadFolders() {
+            const container = document.getElementById('folder-list-container');
+            const isAdmin = currentUsername === 'hsliang-admin';
+
+            const { data: list } = await supabaseClient.from('folders').select('*').order('created_at', { ascending: true });
+
+            // 預設預載的主資料夾
+            let html = `
+                <div class="win11-folder p-3 rounded-lg flex items-center justify-between shadow-sm">
+                    <div class="flex items-center space-x-2.5 overflow-hidden">
+                        <span class="text-xl">📁</span>
+                        <div class="truncate">
+                            <p class="text-xs font-semibold text-gray-800 truncate">教育部 OneDrive 主講義區</p>
+                            <p class="text-[10px] text-gray-400 truncate">學校帳號同步總資料夾</p>
+                        </div>
+                    </div>
+                    <a href="${DEFAULT_ONEDRIVE_URL}" target="_blank" class="text-[11px] bg-blue-600 hover:bg-blue-700 text-white font-medium px-2.5 py-1 rounded transition shrink-0">開啟 🔗</a>
+                </div>
+            `;
+
+            if (list && list.length > 0) {
+                html += list.map(item => `
+                    <div class="win11-folder p-3 rounded-lg flex items-center justify-between shadow-sm">
+                        <div class="flex items-center space-x-2.5 overflow-hidden">
+                            <span class="text-xl">📂</span>
+                            <div class="truncate">
+                                <p class="text-xs font-semibold text-gray-800 truncate">${item.name}</p>
+                                <p class="text-[10px] text-gray-400 truncate">${item.url ? '雲端連結' : '自訂分類'}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1.5 shrink-0">
+                            <a href="${item.url || DEFAULT_ONEDRIVE_URL}" target="_blank" class="text-[11px] bg-blue-600 hover:bg-blue-700 text-white font-medium px-2.5 py-1 rounded transition">開啟 🔗</a>
+                            ${isAdmin ? `<button onclick="deleteFolder(${item.id})" class="text-[10px] bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded border border-red-200 transition">刪除</button>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            container.innerHTML = html;
+        }
+
+        async function deleteFolder(id) {
+            if (confirm('確定要刪除此講義資料夾嗎？')) {
+                await supabaseClient.from('folders').delete().eq('id', id);
+                loadFolders();
+            }
+        }
+
+        // ================= 即時公告 =================
         async function postAnnouncement() {
             const text = document.getElementById('announce-input').value.trim();
             if (!text) return;
