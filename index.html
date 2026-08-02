@@ -56,6 +56,12 @@
 </head>
 <body class="bg-white flex items-center justify-center min-h-screen text-gray-800 p-2 sm:p-4">
 
+    <!-- 模擬登入提示橫幅 (預設隱藏) -->
+    <div id="impersonate-banner" class="hidden fixed top-0 left-0 w-full bg-amber-500 text-white text-center py-2 px-4 z-50 shadow-md flex items-center justify-center gap-4 text-xs font-medium">
+        <span>⚠️ 您目前正在使用【模擬登入】模式（正在檢視帳號：<span id="impersonated-user-name" class="font-bold underline"></span>）</span>
+        <button onclick="exitImpersonation()" class="bg-white text-amber-700 px-3 py-1 rounded font-bold hover:bg-amber-100 transition shadow-sm">退出並返回管理員</button>
+    </div>
+
     <!-- 登入卡片 -->
     <div id="auth-card" class="bg-white p-6 sm:p-8 border border-gray-200 rounded-xl shadow-sm w-full max-w-sm">
         <h1 id="form-title" class="text-2xl font-light mb-6 text-center tracking-wide text-gray-900">會員登入</h1>
@@ -123,7 +129,7 @@
     </div>
 
     <!-- 全螢幕使用者面板 -->
-    <div id="user-panel-view" class="hidden fixed inset-0 bg-white z-50 flex flex-col justify-between p-4 sm:p-8 md:p-12 overflow-y-auto">
+    <div id="user-panel-view" class="hidden fixed inset-0 bg-white z-45 flex flex-col justify-between p-4 sm:p-8 md:p-12 overflow-y-auto">
         
         <!-- 頂部跑馬燈公告列 -->
         <div id="marquee-container" class="w-full bg-amber-50 border border-amber-200 text-amber-900 text-xs py-2 px-3 rounded-lg overflow-hidden relative shrink-0 shadow-sm flex items-center mb-3">
@@ -288,6 +294,7 @@
 
                 <div id="admin-settings-section" class="hidden bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-4">
                     <p class="text-xs font-semibold text-gray-700 uppercase tracking-wider">👑 管理員系統控制台</p>
+                    
                     <div class="space-y-3">
                         <p class="text-xs font-medium text-gray-600">1. 修改網站版本序號與顯示狀態</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -313,6 +320,25 @@
                         <p class="text-xs font-medium text-gray-600">3. 修改「幫助」頁面內容</p>
                         <textarea id="setting-help-input" rows="4" class="w-full p-3 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入幫助說明文字..."></textarea>
                         <button onclick="saveAdminHelpText()" class="w-full bg-black text-white text-xs font-medium py-2 rounded-lg hover:bg-gray-800 transition">儲存幫助說明內容</button>
+                    </div>
+
+                    <!-- 新增：模擬登入功能區塊 -->
+                    <div class="space-y-3 pt-2 border-t border-gray-200">
+                        <p class="text-xs font-medium text-gray-600">4. 用戶列表與模擬登入 (Impersonate)</p>
+                        <p class="text-[11px] text-gray-500">點擊後可直接切換至該用戶視角（無需知道密碼），操作將會被記錄稽核。</p>
+                        <div class="bg-white border border-gray-200 rounded-lg max-h-40 overflow-y-auto p-2">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-gray-100 text-gray-600">
+                                    <tr>
+                                        <th class="p-2">帳號 / 識別</th>
+                                        <th class="p-2 text-right">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-impersonate-user-list">
+                                    <tr><td colspan="2" class="p-2 text-center text-gray-400">載入中...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -490,6 +516,7 @@
                 document.getElementById('password').value = savedPass;
                 document.getElementById('remember-me').checked = true;
             }
+            checkImpersonationBanner();
         });
 
         function toggleMode() {
@@ -523,7 +550,6 @@
             const email = userInput + '@mathlearn.com';
 
             if (isSignUp) {
-                // 註冊新帳號時，預設帶入 must_change_password: true
                 const { error } = await supabaseClient.auth.signUp({ 
                     email, password, options: { data: { must_change_password: true, nickname: '' } }
                 });
@@ -545,7 +571,6 @@
             document.getElementById('auth-card').classList.add('hidden');
             const metadata = user.user_metadata || {};
             
-            // 只要標記為 must_change_password 或是剛好輸入了預設密碼 "00000000"，就強制要求修改密碼
             if (metadata.must_change_password === true || inputPassword === '00000000') {
                 document.getElementById('change-password-card').classList.remove('hidden');
             } else {
@@ -600,7 +625,6 @@
             } else {
                 alert('密碼修改成功！歡迎進入系統。');
                 document.getElementById('change-password-card').classList.add('hidden');
-                // 同步更新記住的密碼
                 if (localStorage.getItem('remember_username') === currentUsername) {
                     localStorage.setItem('remember_password', newPassword);
                 }
@@ -624,9 +648,81 @@
             loadForumMessages();
             loadGrades();
             loadUserFaqChat();
-            if (currentUsername === 'hsliang-admin') loadAdminFaqList();
+            if (currentUsername === 'hsliang-admin') {
+                loadAdminFaqList();
+                loadAdminImpersonateUsers();
+            }
 
             listenRealtimeUpdates();
+        }
+
+        // 模擬登入功能邏輯
+        async function startImpersonation(targetUser) {
+            if (!confirm(`確定要以【${targetUser}】的身份進入前台檢視嗎？此操作將被記錄。`)) return;
+
+            // 記錄管理員原本身份與模擬狀態至 localStorage
+            localStorage.setItem('impersonator_admin', currentUsername);
+            localStorage.setItem('is_impersonating', 'true');
+            localStorage.setItem('impersonated_user', targetUser);
+
+            // 切換當前操作帳號為目標用戶
+            currentUsername = targetUser;
+            
+            alert(`已成功切換至 ${targetUser} 的視角！`);
+            checkImpersonationBanner();
+            goToUserPanel();
+        }
+
+        function checkImpersonationBanner() {
+            const isImpersonating = localStorage.getItem('is_impersonating');
+            const targetUser = localStorage.getItem('impersonated_user');
+            const banner = document.getElementById('impersonate-banner');
+            
+            if (isImpersonating === 'true' && targetUser) {
+                banner.classList.remove('hidden');
+                document.getElementById('impersonated-user-name').innerText = targetUser;
+                document.body.style.paddingTop = '40px';
+            } else {
+                banner.classList.add('hidden');
+                document.body.style.paddingTop = '0px';
+            }
+        }
+
+        function exitImpersonation() {
+            const adminUser = localStorage.getItem('impersonator_admin') || 'hsliang-admin';
+            localStorage.removeItem('is_impersonating');
+            localStorage.removeItem('impersonated_user');
+            localStorage.removeItem('impersonator_admin');
+            
+            alert('已退出模擬登入，返回管理員身份。');
+            location.reload();
+        }
+
+        async function loadAdminImpersonateUsers() {
+            // 從成績記錄或論壇紀錄抓取所有曾經登入過的用戶清單作為模擬對象
+            const { data: gradesList } = await supabaseClient.from('grades').select('username');
+            const { data: forumList } = await supabaseClient.from('forum_messages').select('username');
+            
+            let allUsers = ['hsliang-admin'];
+            if (gradesList) gradesList.forEach(i => allUsers.push(i.username));
+            if (forumList) forumList.forEach(i => allUsers.push(i.username));
+            
+            const uniqueUsers = [...new Set(allUsers)].filter(u => u !== 'hsliang-admin');
+            const tbody = document.getElementById('admin-impersonate-user-list');
+
+            if (uniqueUsers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="2" class="p-2 text-center text-gray-400">目前尚無其他註冊用戶</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = uniqueUsers.map(u => `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="p-2 font-mono text-gray-800">👤 ${u}</td>
+                    <td class="p-2 text-right">
+                        <button onclick="startImpersonation('${u}')" class="bg-black hover:bg-gray-800 text-white text-[11px] px-2.5 py-1 rounded transition">模擬登入</button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
         function listenRealtimeUpdates() {
@@ -714,7 +810,7 @@
         }
 
         function checkAdminFeatures() {
-            const isAdmin = currentUsername === 'hsliang-admin';
+            const isAdmin = currentUsername === 'hsliang-admin' && localStorage.getItem('is_impersonating') !== 'true';
             document.getElementById('admin-badge-1').classList.toggle('hidden', !isAdmin);
             document.getElementById('admin-announce-box').classList.toggle('hidden', !isAdmin);
             document.getElementById('admin-folder-box').classList.toggle('hidden', !isAdmin);
@@ -747,7 +843,7 @@
                 container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">目前尚無即時訊息</p>';
                 return;
             }
-            const isAdmin = currentUsername === 'hsliang-admin';
+            const isAdmin = currentUsername === 'hsliang-admin' && localStorage.getItem('is_impersonating') !== 'true';
             container.innerHTML = list.map(item => `
                 <div class="bg-white p-2.5 border border-gray-200 rounded-lg text-xs flex justify-between items-start">
                     <div class="w-full pr-2">
@@ -840,7 +936,7 @@
                     return;
                 }
 
-                const isAdmin = currentUsername === 'hsliang-admin';
+                const isAdmin = currentUsername === 'hsliang-admin' && localStorage.getItem('is_impersonating') !== 'true';
                 container.innerHTML = items.map(item => {
                     if (item.is_folder) {
                         return `
@@ -873,7 +969,6 @@
             } catch (err) { console.error(err); }
         }
 
-        // 開啟檔案預覽與多頁 PDF 連續渲染
         async function openFilePreview(fileUrl, fileName) {
             currentFileUrl = fileUrl;
             currentFileName = fileName;
@@ -946,7 +1041,7 @@
 
         async function renderPdfPageToContainer(pageNum, container) {
             const page = await currentPdfDoc.getPage(pageNum);
-            const scale = (currentZoom / 100) * 1.5; // 提高清晰度
+            const scale = (currentZoom / 100) * 1.5;
             const viewport = page.getViewport({ scale });
 
             const canvas = document.createElement('canvas');
@@ -961,7 +1056,6 @@
             };
             await page.render(renderContext).promise;
             
-            // 包裝每一頁並加上頁碼標籤
             const pageWrapper = document.createElement('div');
             pageWrapper.className = "flex flex-col items-center w-full mb-2";
             
@@ -1057,7 +1151,7 @@
             const { data: list } = await supabaseClient.from('forum_messages').select('*').order('created_at', { ascending: true });
             const container = document.getElementById('forum-list');
             if (!list || list.length === 0) { container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">大家一起來聊聊吧！</p>'; return; }
-            const isAdmin = currentUsername === 'hsliang-admin';
+            const isAdmin = currentUsername === 'hsliang-admin' && localStorage.getItem('is_impersonating') !== 'true';
             container.innerHTML = list.map(item => `
                 <div class="text-xs pb-2 border-b border-gray-100 flex justify-between">
                     <div>
@@ -1084,7 +1178,7 @@
         }
 
         async function loadGrades() {
-            const isAdmin = currentUsername === 'hsliang-admin';
+            const isAdmin = currentUsername === 'hsliang-admin' && localStorage.getItem('is_impersonating') !== 'true';
             let query = supabaseClient.from('grades').select('*').order('created_at', { ascending: false });
             if (!isAdmin) query = query.eq('username', currentUsername);
             const { data: list } = await query;
@@ -1189,7 +1283,13 @@
         }
 
         function backToDashboard() { showDashboard(currentUsername); }
-        async function logout() { await supabaseClient.auth.signOut(); location.reload(); }
+        async function logout() { 
+            localStorage.removeItem('is_impersonating');
+            localStorage.removeItem('impersonated_user');
+            localStorage.removeItem('impersonator_admin');
+            await supabaseClient.auth.signOut(); 
+            location.reload(); 
+        }
     </script>
 </body>
 </html>
