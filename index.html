@@ -146,24 +146,22 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     
-                    <!-- 重點修正 1. 即時發布訊息：加上 overflow-hidden 與 flex-col，內部用 flex-1 -->
+                    <!-- 即時發布訊息 -->
                     <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col h-[380px] sm:h-[420px] overflow-hidden">
                         <h3 class="text-sm font-medium uppercase tracking-wider text-gray-700 mb-3 flex items-center justify-between shrink-0">
                             <span>1. 即時發布訊息</span>
                             <span id="admin-badge-1" class="hidden text-[10px] bg-black text-white px-2 py-0.5 rounded">管理員</span>
                         </h3>
-                        <!-- shrink-0 確保發布框不會被擠扁 -->
                         <div id="admin-announce-box" class="hidden mb-3 shrink-0">
                             <textarea id="announce-input" rows="3" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入要發布給大家的訊息（支援換行與排版）..."></textarea>
                             <button onclick="postAnnouncement()" class="w-full mt-1 bg-black text-white text-xs py-1.5 rounded-lg hover:bg-gray-800 transition">發布公告</button>
                         </div>
-                        <!-- flex-1 讓這個區塊自動填滿所有剩餘高度，多的就在內部滾動 -->
                         <div id="announce-list" class="space-y-2 overflow-y-auto flex-1 pr-3 custom-scrollbar">
                             <p class="text-xs text-gray-400 text-center mt-12">目前尚無即時訊息</p>
                         </div>
                     </div>
 
-                    <!-- 重點修正 2. 數學講義檔案 -->
+                    <!-- 數學講義檔案 -->
                     <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col h-[380px] sm:h-[420px] overflow-hidden">
                         <div class="shrink-0">
                             <div class="flex justify-between items-center mb-3">
@@ -192,13 +190,12 @@
                             </div>
                         </div>
 
-                        <!-- 檔案區自動延伸 -->
                         <div id="folder-view-container" class="space-y-2 overflow-y-auto flex-1 pr-2 custom-scrollbar">
                             <p class="text-xs text-gray-400 text-center mt-12">尚無資料</p>
                         </div>
                     </div>
 
-                    <!-- 重點修正 3. 發問論壇聊天 -->
+                    <!-- 發問論壇聊天 -->
                     <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col h-[380px] sm:h-[420px] overflow-hidden">
                         <h3 class="text-sm font-medium uppercase tracking-wider text-gray-700 mb-3 shrink-0">3. 發問論壇聊天</h3>
                         <div id="forum-list" class="space-y-2 overflow-y-auto flex-1 pr-2 custom-scrollbar bg-white p-3 border border-gray-200 rounded-lg mb-2">
@@ -381,6 +378,41 @@
 
         <div id="footer-version-text" class="text-center text-xs text-gray-300 font-light shrink-0 pt-2">
             My Website System - <span id="footer-v-tag">v.0.0.1 Beta 3</span>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- Google Drive 風格預覽 Modal 結構           -->
+    <!-- ========================================== -->
+    <div id="file-preview-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 hidden">
+        <div class="relative w-11/12 max-w-5xl h-[85vh] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden">
+            
+            <!-- Modal 頂部標題列 -->
+            <div class="flex items-center justify-between px-6 py-4 bg-gray-900 text-white">
+                <div id="preview-modal-title" class="text-lg font-medium truncate">檔案預覽</div>
+                <div class="flex items-center space-x-3">
+                    <!-- 下載按鈕 -->
+                    <a id="preview-download-btn" href="#" target="_blank" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-sm rounded-md transition flex items-center space-x-1">
+                        <span>下載</span>
+                    </a>
+                    <!-- 關閉按鈕 -->
+                    <button onclick="closeFilePreview()" class="text-gray-300 hover:text-white text-xl px-2">✕</button>
+                </div>
+            </div>
+
+            <!-- 檔案內容顯示區 -->
+            <div class="flex-1 bg-gray-100 flex items-center justify-center relative overflow-hidden p-4">
+                <!-- PDF 預覽用 iframe -->
+                <iframe id="preview-iframe" class="w-full h-full rounded border border-gray-300 hidden" frameborder="0"></iframe>
+                
+                <!-- JPG/圖片 預覽用 img -->
+                <img id="preview-img" class="max-w-full max-h-full object-contain rounded shadow hidden" alt="預覽圖片" />
+                
+                <!-- 載入中動畫 -->
+                <div id="preview-loading" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70">
+                    <span class="text-sm text-blue-600 font-medium">載入中...</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -744,7 +776,7 @@
                                     <span class="font-medium truncate text-gray-700">${item.title}</span>
                                 </div>
                                 <div class="flex gap-1 shrink-0">
-                                    <button onclick="openHandoutSafely('${item.url.replace(/'/g, "\\'")}')" class="bg-gray-100 hover:bg-black hover:text-white px-2.5 py-1 rounded text-[11px] transition">開啟</button>
+                                    <button onclick="openFilePreview('${item.url.replace(/'/g, "\\'")}', '${item.title.replace(/'/g, "\\'")}')" class="bg-gray-100 hover:bg-black hover:text-white px-2.5 py-1 rounded text-[11px] transition">開啟</button>
                                     ${isAdmin ? `<button onclick="deleteHandoutItem(${item.id})" class="text-[10px] text-red-500 hover:underline">刪除</button>` : ''}
                                 </div>
                             </div>
@@ -754,18 +786,71 @@
             } catch (err) { console.error(err); }
         }
 
-        function openHandoutSafely(url) {
-            try {
-                const newWindow = window.open(url, '_blank');
-                if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-                    const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                }
-            } catch (e) {
-                const a = document.createElement('a'); a.href = url; a.target = '_blank';
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        // ========================================== -->
+        // Google Drive 風格 Modal 預覽控制邏輯     -->
+        // ========================================== -->
+        async function openFilePreview(fileUrl, fileName) {
+            const modal = document.getElementById('file-preview-modal');
+            const titleEl = document.getElementById('preview-modal-title');
+            const iframeEl = document.getElementById('preview-iframe');
+            const imgEl = document.getElementById('preview-img');
+            const downloadBtn = document.getElementById('preview-download-btn');
+            const loadingEl = document.getElementById('preview-loading');
+
+            // 1. 初始化顯示狀態
+            modal.classList.remove('hidden');
+            titleEl.textContent = fileName;
+            downloadBtn.href = fileUrl;
+            loadingEl.classList.remove('hidden');
+            
+            // 隱藏並清空前一次內容
+            iframeEl.classList.add('hidden');
+            iframeEl.src = '';
+            imgEl.classList.add('hidden');
+            imgEl.src = '';
+
+            // 2. 判斷格式 (支援 PDF 與圖片格式)
+            const lowerUrl = fileUrl.toLowerCase();
+            const isPdf = lowerUrl.includes('.pdf') || lowerUrl.endsWith('pdf') || lowerUrl.includes('application/pdf');
+            const isImage = /\.(jpg|jpeg|png|webp|gif)(?:\?.*)?$/i.test(lowerUrl) || lowerUrl.includes('image/');
+
+            if (isPdf) {
+                iframeEl.src = fileUrl;
+                iframeEl.onload = () => {
+                    loadingEl.classList.add('hidden');
+                    iframeEl.classList.remove('hidden');
+                };
+            } else if (isImage) {
+                imgEl.src = fileUrl;
+                imgEl.onload = () => {
+                    loadingEl.classList.add('hidden');
+                    imgEl.classList.remove('hidden');
+                };
+            } else {
+                loadingEl.classList.add('hidden');
+                alert("此檔案格式不支援網頁內嵌預覽，將直接為您開新分頁檢視。");
+                window.open(fileUrl, '_blank');
+                closeFilePreview();
             }
         }
+
+        // 關閉預覽 Modal
+        function closeFilePreview() {
+            const modal = document.getElementById('file-preview-modal');
+            const iframeEl = document.getElementById('preview-iframe');
+            const imgEl = document.getElementById('preview-img');
+            
+            modal.classList.add('hidden');
+            iframeEl.src = '';
+            imgEl.src = '';
+        }
+
+        // 監聽 ESC 鍵關閉預覽視窗
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeFilePreview();
+            }
+        });
 
         async function deleteHandoutItem(id) { await supabaseClient.from('handouts').delete().eq('id', id); renderFolderView(); }
 
