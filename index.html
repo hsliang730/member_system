@@ -141,22 +141,29 @@
                         </div>
                     </div>
 
+                    <!-- 多層級講義資料夾區塊 -->
                     <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col justify-between h-[380px] sm:h-[420px]">
                         <div>
                             <div class="flex justify-between items-center mb-2">
-                                <h3 id="folder-path-title" class="text-sm font-medium uppercase tracking-wider text-gray-700 truncate w-40 sm:w-44">2. 講義資料夾</h3>
+                                <h3 id="folder-path-title" class="text-sm font-medium uppercase tracking-wider text-gray-700 truncate w-40 sm:w-44">📂 根目錄</h3>
+                                <button id="back-folder-btn" onclick="navigateParentFolder()" class="hidden text-[10px] bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-0.5 rounded">⬅ 返回上一層</button>
                             </div>
 
-                            <div id="admin-folder-box" class="hidden mb-2 space-y-1">
+                            <!-- 管理員新增功能（資料夾/檔案） -->
+                            <div id="admin-folder-box" class="hidden mb-3 space-y-2 border-b border-gray-200 pb-2">
+                                <div class="flex gap-1 items-center">
+                                    <input type="text" id="new-folder-name" class="flex-1 p-1.5 bg-white border border-gray-200 rounded text-xs focus:outline-none focus:border-black" placeholder="新資料夾名稱">
+                                    <button onclick="createNewFolder()" class="bg-gray-800 text-white text-xs px-2.5 py-1 rounded shrink-0 hover:bg-black">+ 資料夾</button>
+                                </div>
                                 <div class="flex gap-1 items-center">
                                     <input type="text" id="handout-title" class="w-24 sm:w-28 p-1.5 bg-white border border-gray-200 rounded text-xs focus:outline-none focus:border-black" placeholder="檔案名稱">
-                                    <input type="file" id="handout-file-input" class="w-full text-[10px] text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300">
+                                    <input type="file" id="handout-file-input" class="w-full text-[10px] text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-gray-200 file:text-gray-700">
                                     <button onclick="uploadHandoutRealFile()" class="bg-black text-white text-xs px-2.5 py-1 rounded shrink-0">上傳</button>
                                 </div>
                             </div>
 
-                            <div id="folder-view-container" class="space-y-2 overflow-y-auto h-[220px] sm:h-[260px] pr-1">
-                                <p class="text-xs text-gray-400 text-center mt-12">尚無資料夾</p>
+                            <div id="folder-view-container" class="space-y-2 overflow-y-auto h-[200px] sm:h-[240px] pr-1">
+                                <p class="text-xs text-gray-400 text-center mt-12">尚無資料</p>
                             </div>
                         </div>
                     </div>
@@ -379,6 +386,10 @@
         let selectedAdminChatUser = null;
         let siteConfigs = {};
 
+        // 多層級資料夾紀錄系統
+        let currentFolderId = null; // null 代表根目錄
+        let folderBreadcrumbs = [{ id: null, name: '根目錄' }];
+
         // 當網頁載入完成時，檢查是否有記住的帳號密碼
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('remember_username');
@@ -410,7 +421,6 @@
                 return;
             }
 
-            // 處理「記住帳號密碼」邏輯
             if (rememberMe) {
                 localStorage.setItem('remember_username', userInput);
                 localStorage.setItem('remember_password', password);
@@ -518,6 +528,16 @@
 
             supabaseClient.channel('public:site_config')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'site_config' }, () => loadSiteConfig())
+                .subscribe();
+
+            supabaseClient.channel('public:faq_submissions')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'faq_submissions' }, () => {
+                    loadUserFaqChat();
+                    if (currentUsername === 'hsliang-admin') {
+                        loadAdminFaqList();
+                        renderAdminChat();
+                    }
+                })
                 .subscribe();
         }
 
@@ -662,6 +682,20 @@
             loadAnnouncements();
         }
 
+        // ================= 多層級資料夾邏輯 =================
+        async function createNewFolder() {
+            const folderName = document.getElementById('new-folder-name').value.trim();
+            if (!folderName) return;
+
+            await supabaseClient.from('handouts').insert([{
+                title: folderName,
+                is_folder: true,
+                parent_id: currentFolderId
+            }]);
+            document.getElementById('new-folder-name').value = '';
+            renderFolderView();
+        }
+
         async function uploadHandoutRealFile() {
             const title = document.getElementById('handout-title').value.trim();
             const fileInput = document.getElementById('handout-file-input');
@@ -670,7 +704,12 @@
             const file = fileInput.files[0];
             const reader = new FileReader();
             reader.onload = async function(e) {
-                await supabaseClient.from('handouts').insert([{ title, url: e.target.result }]);
+                await supabaseClient.from('handouts').insert([{
+                    title,
+                    url: e.target.result,
+                    is_folder: false,
+                    parent_id: currentFolderId
+                }]);
                 document.getElementById('handout-title').value = '';
                 fileInput.value = '';
                 renderFolderView();
@@ -678,30 +717,74 @@
             reader.readAsDataURL(file);
         }
 
-        async function renderFolderView() {
-            const { data: files } = await supabaseClient.from('handouts').select('*').order('created_at', { ascending: false });
-            const container = document.getElementById('folder-view-container');
-            if (!files || files.length === 0) {
-                container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">目前尚無講義</p>';
-                return;
-            }
-            const isAdmin = currentUsername === 'hsliang-admin';
-            container.innerHTML = files.map(file => `
-                <div class="bg-white p-2.5 border border-gray-200 rounded-lg text-xs flex justify-between items-center">
-                    <span class="font-medium truncate">📄 ${file.title}</span>
-                    <div class="flex gap-1">
-                        <a href="${file.url}" target="_blank" class="bg-gray-100 hover:bg-black hover:text-white px-2.5 py-1 rounded text-[11px]">開啟</a>
-                        ${isAdmin ? `<button onclick="deleteHandout(${file.id})" class="text-[10px] text-red-500">刪除</button>` : ''}
-                    </div>
-                </div>
-            `).join('');
+        function enterSubFolder(folderId, folderName) {
+            currentFolderId = folderId;
+            folderBreadcrumbs.push({ id: folderId, name: folderName });
+            renderFolderView();
         }
 
-        async function deleteHandout(id) {
+        function navigateParentFolder() {
+            if (folderBreadcrumbs.length > 1) {
+                folderBreadcrumbs.pop();
+                currentFolderId = folderBreadcrumbs[folderBreadcrumbs.length - 1].id;
+                renderFolderView();
+            }
+        }
+
+        async function renderFolderView() {
+            const currentBreadcrumb = folderBreadcrumbs[folderBreadcrumbs.length - 1];
+            document.getElementById('folder-path-title').innerText = '📂 ' + currentBreadcrumb.name;
+            document.getElementById('back-folder-btn').classList.toggle('hidden', folderBreadcrumbs.length <= 1);
+
+            let query = supabaseClient.from('handouts').select('*');
+            if (currentFolderId === null) {
+                query = query.is('parent_id', null);
+            } else {
+                query = query.eq('parent_id', currentFolderId);
+            }
+
+            const { data: items } = await query.order('is_folder', { ascending: false }).order('created_at', { ascending: false });
+            const container = document.getElementById('folder-view-container');
+
+            if (!items || items.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">此資料夾尚無檔案或子資料夾</p>';
+                return;
+            }
+
+            const isAdmin = currentUsername === 'hsliang-admin';
+            container.innerHTML = items.map(item => {
+                if (item.is_folder) {
+                    return `
+                        <div class="bg-amber-50/50 p-2.5 border border-amber-200 rounded-lg text-xs flex justify-between items-center hover:bg-amber-100/50 transition">
+                            <button onclick="enterSubFolder(${item.id}, '${item.title}')" class="font-semibold text-amber-900 truncate flex items-center gap-1">
+                                📁 ${item.title}
+                            </button>
+                            <div class="flex gap-1 items-center">
+                                <button onclick="enterSubFolder(${item.id}, '${item.title}')" class="text-[11px] bg-amber-200 hover:bg-amber-300 px-2 py-0.5 rounded text-amber-800">開啟</button>
+                                ${isAdmin ? `<button onclick="deleteHandoutItem(${item.id})" class="text-[10px] text-red-500 ml-1">刪除</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="bg-white p-2.5 border border-gray-200 rounded-lg text-xs flex justify-between items-center">
+                            <span class="font-medium truncate text-gray-700">📄 ${item.title}</span>
+                            <div class="flex gap-1">
+                                <a href="${item.url}" target="_blank" class="bg-gray-100 hover:bg-black hover:text-white px-2.5 py-1 rounded text-[11px] transition">開啟</a>
+                                ${isAdmin ? `<button onclick="deleteHandoutItem(${item.id})" class="text-[10px] text-red-500">刪除</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        async function deleteHandoutItem(id) {
             await supabaseClient.from('handouts').delete().eq('id', id);
             renderFolderView();
         }
 
+        // ================= 論壇與成績系統 =================
         async function postForumMessage() {
             const text = document.getElementById('forum-input').value.trim();
             if (!text) return;
@@ -779,16 +862,21 @@
             loadGrades();
         }
 
+        // ================= FAQ 一對一發問修復邏輯 =================
         async function submitFaqQuestion() {
             const message = document.getElementById('faq-message-input').value.trim();
             if (!message) return;
 
-            await supabaseClient.from('faq_submissions').insert([{ username: currentUsername, message }]);
+            const { error } = await supabaseClient.from('faq_submissions').insert([{ username: currentUsername, message }]);
+            if (error) {
+                alert('訊息傳送失敗：' + error.message);
+                return;
+            }
+
             document.getElementById('faq-message-input').value = '';
             loadUserFaqChat();
         }
 
-        // 用戶端 LINE 風格聊天室載入
         async function loadUserFaqChat() {
             const { data: list } = await supabaseClient.from('faq_submissions').select('*').eq('username', currentUsername).order('created_at', { ascending: true });
             const container = document.getElementById('user-faq-chat-box');
@@ -798,14 +886,12 @@
             }
 
             container.innerHTML = list.map(item => `
-                <!-- 用戶發言 (白色氣泡靠右) -->
                 <div class="flex flex-col items-end space-y-1">
                     <div class="bg-white text-gray-800 p-2.5 rounded-2xl rounded-tr-none text-xs shadow-sm max-w-[80%] break-words">
                         ${item.message}
                     </div>
                     <span class="text-[9px] text-gray-500 mr-1">${new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                 </div>
-                <!-- 管理員回覆 (LINE綠色氣泡靠左) -->
                 ${item.reply ? `
                     <div class="flex flex-col items-start space-y-1">
                         <span class="text-[10px] text-gray-600 font-medium ml-1">客服管理員</span>
@@ -818,7 +904,6 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // 管理員：載入提問用戶列表
         async function loadAdminFaqList() {
             const { data: list } = await supabaseClient.from('faq_submissions').select('*').order('created_at', { ascending: false });
             if (!list) return;
@@ -838,13 +923,11 @@
             `).join('');
         }
 
-        // 管理員：選擇用戶後，手機版切換顯示聊天視窗
         function selectAdminChatUser(u) {
             selectedAdminChatUser = u;
             document.getElementById('admin-chat-title').innerText = `與 ${u} 的對話`;
             document.getElementById('admin-chat-input-box').classList.remove('hidden');
 
-            // 手機版：將聊天視窗顯示出（移除 hidden），隱藏用戶清單
             const chatPanel = document.getElementById('admin-faq-chat-panel');
             chatPanel.classList.remove('hidden');
             chatPanel.classList.add('flex');
@@ -852,14 +935,12 @@
             renderAdminChat();
         }
 
-        // 管理員：手機版點擊「返回用戶列表」
         function closeAdminMobileChat() {
             const chatPanel = document.getElementById('admin-faq-chat-panel');
             chatPanel.classList.add('hidden');
             chatPanel.classList.remove('flex');
         }
 
-        // 管理員：渲染 LINE 風格對話視窗內容
         async function renderAdminChat() {
             if (!selectedAdminChatUser) return;
             const { data: list } = await supabaseClient.from('faq_submissions').select('*').eq('username', selectedAdminChatUser).order('created_at', { ascending: true });
@@ -871,7 +952,6 @@
             }
 
             chatMessages.innerHTML = list.map(item => `
-                <!-- 用戶提問 (白色氣泡靠左) -->
                 <div class="flex flex-col items-start space-y-1">
                     <span class="text-[10px] text-gray-600 font-medium ml-1">${item.username}</span>
                     <div class="bg-white text-gray-800 p-2.5 rounded-2xl rounded-tl-none text-xs shadow-sm max-w-[85%] break-words">
@@ -879,7 +959,6 @@
                     </div>
                 </div>
 
-                <!-- 管理員已回覆內容 (LINE綠色氣泡靠右) -->
                 ${item.reply ? `
                     <div class="flex flex-col items-end space-y-1">
                         <span class="text-[10px] text-gray-500 mr-1">管理員回覆</span>
@@ -892,14 +971,17 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // 管理員：發送回覆
         async function sendAdminReplyToSelectedUser() {
             const reply = document.getElementById('admin-reply-input').value.trim();
             if (!reply || !selectedAdminChatUser) return;
 
             const { data: list } = await supabaseClient.from('faq_submissions').select('id').eq('username', selectedAdminChatUser).order('created_at', { ascending: false }).limit(1);
             if (list && list.length > 0) {
-                await supabaseClient.from('faq_submissions').update({ reply }).eq('id', list[0].id);
+                const { error } = await supabaseClient.from('faq_submissions').update({ reply }).eq('id', list[0].id);
+                if (error) {
+                    alert('回覆傳送失敗：' + error.message);
+                    return;
+                }
                 document.getElementById('admin-reply-input').value = '';
                 renderAdminChat();
             }
