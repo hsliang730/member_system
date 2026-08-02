@@ -373,7 +373,8 @@
             My Website System - <span id="footer-v-tag">v.0.0.1 Beta 1</span>
         </div>
     </div>
-        <script>
+
+    <script>
         const SUPABASE_URL = 'https://kbfiliuhlrcvqgwixpaa.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_jTtHGAFWZ5gr1aevYPaukA_w6mdh6jk';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -513,6 +514,9 @@
             supabaseClient.channel('public:announcements')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => loadAnnouncements()).subscribe();
 
+            supabaseClient.channel('public:handouts')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'handouts' }, () => renderFolderView()).subscribe();
+
             supabaseClient.channel('public:forum_messages')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'forum_messages' }, () => loadForumMessages()).subscribe();
 
@@ -628,27 +632,75 @@
             loadAnnouncements();
         }
 
-        // ================= Windows 11 風格資料夾與講義 =================
+        // ================= Windows 11 風格資料夾與講義 (增強錯抓版) =================
         async function createNewFolder() {
-            const folderName = document.getElementById('new-folder-name').value.trim();
-            if (!folderName) return;
-            await supabaseClient.from('handouts').insert([{ title: folderName, is_folder: true, parent_id: currentFolderId }]);
-            document.getElementById('new-folder-name').value = '';
-            renderFolderView();
+            const folderInput = document.getElementById('new-folder-name');
+            const folderName = folderInput.value.trim();
+            
+            if (!folderName) {
+                alert('請輸入資料夾名稱！');
+                return;
+            }
+
+            try {
+                const parentIdValue = currentFolderId ? Number(currentFolderId) : null;
+                const { data, error } = await supabaseClient
+                    .from('handouts')
+                    .insert([{ 
+                        title: folderName, 
+                        is_folder: true, 
+                        parent_id: parentIdValue 
+                    }]);
+
+                if (error) {
+                    console.error('新增資料夾失敗：', error);
+                    alert('建立資料夾失敗！原因：\n' + error.message);
+                    return;
+                }
+
+                folderInput.value = '';
+                renderFolderView();
+            } catch (err) {
+                console.error('例外錯誤：', err);
+                alert('發生預期外錯誤：' + err.message);
+            }
         }
 
         async function uploadHandoutRealFile() {
-            const title = document.getElementById('handout-title').value.trim();
+            const titleInput = document.getElementById('handout-title');
             const fileInput = document.getElementById('handout-file-input');
-            if (!title || fileInput.files.length === 0) return;
+            const title = titleInput.value.trim();
+            
+            if (!title || fileInput.files.length === 0) {
+                alert('請填寫檔案名稱並選擇要上傳的檔案！');
+                return;
+            }
 
             const file = fileInput.files[0];
             const reader = new FileReader();
             reader.onload = async function(e) {
-                await supabaseClient.from('handouts').insert([{ title, url: e.target.result, is_folder: false, parent_id: currentFolderId }]);
-                document.getElementById('handout-title').value = '';
-                fileInput.value = '';
-                renderFolderView();
+                try {
+                    const parentIdValue = currentFolderId ? Number(currentFolderId) : null;
+                    const { error } = await supabaseClient
+                        .from('handouts')
+                        .insert([{ 
+                            title, 
+                            url: e.target.result, 
+                            is_folder: false, 
+                            parent_id: parentIdValue 
+                        }]);
+
+                    if (error) {
+                        alert('檔案上傳失敗：' + error.message);
+                        return;
+                    }
+
+                    titleInput.value = '';
+                    fileInput.value = '';
+                    renderFolderView();
+                } catch (err) {
+                    alert('上傳發生錯誤：' + err.message);
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -668,52 +720,65 @@
         }
 
         async function renderFolderView() {
-            const currentBreadcrumb = folderBreadcrumbs[folderBreadcrumbs.length - 1];
-            document.getElementById('folder-path-title').innerText = currentBreadcrumb.name;
-            document.getElementById('back-folder-btn').classList.toggle('hidden', folderBreadcrumbs.length <= 1);
+            try {
+                const currentBreadcrumb = folderBreadcrumbs[folderBreadcrumbs.length - 1];
+                document.getElementById('folder-path-title').innerText = currentBreadcrumb.name;
+                document.getElementById('back-folder-btn').classList.toggle('hidden', folderBreadcrumbs.length <= 1);
 
-            let query = supabaseClient.from('handouts').select('*');
-            if (currentFolderId === null) query = query.is('parent_id', null);
-            else query = query.eq('parent_id', currentFolderId);
-
-            const { data: items } = await query.order('is_folder', { ascending: false }).order('created_at', { ascending: false });
-            const container = document.getElementById('folder-view-container');
-
-            if (!items || items.length === 0) {
-                container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">此資料夾尚無講義檔案</p>';
-                return;
-            }
-
-            const isAdmin = currentUsername === 'hsliang-admin';
-            container.innerHTML = items.map(item => {
-                if (item.is_folder) {
-                    return `
-                        <div onclick="enterSubFolder(${item.id}, '${item.title}')" class="win11-folder p-2.5 rounded-lg text-xs flex justify-between items-center cursor-pointer">
-                            <div class="flex items-center gap-2 truncate">
-                                <svg class="w-5 h-5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
-                                <span class="font-medium text-gray-800 truncate">${item.title}</span>
-                            </div>
-                            <div class="flex gap-1 items-center shrink-0">
-                                <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">開啟</span>
-                                ${isAdmin ? `<button onclick="event.stopPropagation(); deleteHandoutItem(${item.id})" class="text-[10px] text-red-500 ml-1 hover:underline">刪除</button>` : ''}
-                            </div>
-                        </div>
-                    `;
+                let query = supabaseClient.from('handouts').select('*');
+                if (currentFolderId === null) {
+                    query = query.is('parent_id', null);
                 } else {
-                    return `
-                        <div class="bg-white p-2.5 border border-gray-200 rounded-lg text-xs flex justify-between items-center hover:border-gray-300 transition">
-                            <div class="flex items-center gap-2 truncate">
-                                <svg class="w-5 h-5 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-                                <span class="font-medium truncate text-gray-700">${item.title}</span>
-                            </div>
-                            <div class="flex gap-1 shrink-0">
-                                <a href="${item.url}" target="_blank" class="bg-gray-100 hover:bg-black hover:text-white px-2.5 py-1 rounded text-[11px] transition">開啟</a>
-                                ${isAdmin ? `<button onclick="deleteHandoutItem(${item.id})" class="text-[10px] text-red-500 hover:underline">刪除</button>` : ''}
-                            </div>
-                        </div>
-                    `;
+                    query = query.eq('parent_id', currentFolderId);
                 }
-            }).join('');
+
+                const { data: items, error } = await query.order('is_folder', { ascending: false }).order('created_at', { ascending: false });
+                
+                if (error) {
+                    console.error('讀取講義列表錯誤：', error);
+                    return;
+                }
+
+                const container = document.getElementById('folder-view-container');
+
+                if (!items || items.length === 0) {
+                    container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">此資料夾尚無講義檔案</p>';
+                    return;
+                }
+
+                const isAdmin = currentUsername === 'hsliang-admin';
+                container.innerHTML = items.map(item => {
+                    if (item.is_folder) {
+                        return `
+                            <div onclick="enterSubFolder(${item.id}, '${item.title}')" class="win11-folder p-2.5 rounded-lg text-xs flex justify-between items-center cursor-pointer">
+                                <div class="flex items-center gap-2 truncate">
+                                    <svg class="w-5 h-5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                                    <span class="font-medium text-gray-800 truncate">${item.title}</span>
+                                </div>
+                                <div class="flex gap-1 items-center shrink-0">
+                                    <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">開啟</span>
+                                    ${isAdmin ? `<button onclick="event.stopPropagation(); deleteHandoutItem(${item.id})" class="text-[10px] text-red-500 ml-1 hover:underline">刪除</button>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="bg-white p-2.5 border border-gray-200 rounded-lg text-xs flex justify-between items-center hover:border-gray-300 transition">
+                                <div class="flex items-center gap-2 truncate">
+                                    <svg class="w-5 h-5 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                                    <span class="font-medium truncate text-gray-700">${item.title}</span>
+                                </div>
+                                <div class="flex gap-1 shrink-0">
+                                    <a href="${item.url}" target="_blank" class="bg-gray-100 hover:bg-black hover:text-white px-2.5 py-1 rounded text-[11px] transition">開啟</a>
+                                    ${isAdmin ? `<button onclick="deleteHandoutItem(${item.id})" class="text-[10px] text-red-500 hover:underline">刪除</button>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }).join('');
+            } catch (err) {
+                console.error('渲染資料夾視圖時發生錯誤：', err);
+            }
         }
 
         async function deleteHandoutItem(id) {
@@ -799,12 +864,11 @@
             loadGrades();
         }
 
-        // ================= 一對一 LINE 風格發問與對話串（不覆蓋） =================
+        // ================= 一對一 LINE 風格發問與對話串 =================
         async function submitFaqQuestion() {
             const message = document.getElementById('faq-message-input').value.trim();
             if (!message) return;
 
-            // 新增獨立訊息，不覆蓋舊紀錄
             const { error } = await supabaseClient.from('faq_submissions').insert([{ username: currentUsername, message }]);
             if (error) { alert('訊息傳送失敗：' + error.message); return; }
 
@@ -928,7 +992,6 @@
             const reply = document.getElementById('admin-reply-input').value.trim();
             if (!reply || !selectedAdminChatUser) return;
 
-            // 管理員回覆時，插入獨立訊息，不覆蓋歷史記錄
             const { error } = await supabaseClient.from('faq_submissions').insert([{ username: selectedAdminChatUser, reply }]);
             if (error) { alert('回覆失敗：' + error.message); return; }
 
