@@ -3,47 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>會員即時同步系統</title>
+    <title>會員系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
-    <div id="app" class="bg-white p-8 rounded-xl shadow-md w-96 text-center">
-        <h1 class="text-2xl font-bold mb-4">會員系統</h1>
+    <!-- 登入前畫面 -->
+    <div id="auth-section" class="bg-white p-8 rounded-xl shadow-md w-96 text-center">
+        <h1 class="text-2xl font-bold mb-4">會員登入</h1>
+        <input type="email" id="email" placeholder="電子郵件" class="w-full p-2 mb-3 border rounded"><br>
+        <input type="password" id="password" placeholder="密碼" class="w-full p-2 mb-3 border rounded"><br>
+        <button onclick="login()" class="w-full bg-blue-500 text-white p-2 rounded mb-2 hover:bg-blue-600">登入</button>
+        <button onclick="signup()" class="w-full bg-gray-300 text-gray-700 p-2 rounded hover:bg-gray-400">註冊</button>
+    </div>
+
+    <!-- 登入後空白頁面 -->
+    <div id="dashboard-section" class="hidden fixed inset-0 bg-white p-6">
+        <!-- 右上角登出按鈕 -->
+        <div class="flex justify-between items-center pb-4 border-b">
+            <span id="user-email" class="text-gray-500 text-sm"></span>
+            <button onclick="logout()" class="bg-red-500 text-white px-4 py-1.5 rounded text-sm hover:bg-red-600">登出</button>
+        </div>
         
-        <!-- 登入前顯示 -->
-        <div id="auth-section">
-            <input type="email" id="email" placeholder="電子郵件" class="w-full p-2 mb-3 border rounded"><br>
-            <input type="password" id="password" placeholder="密碼" class="w-full p-2 mb-3 border rounded"><br>
-            <button onclick="login()" class="w-full bg-blue-500 text-white p-2 rounded mb-2">登入</button>
-            <button onclick="signup()" class="w-full bg-gray-300 text-gray-700 p-2 rounded">註冊</button>
-        </div>
-
-        <!-- 登入後顯示 -->
-        <div id="dashboard-section" class="hidden">
-            <p id="user-email" class="mb-4 text-sm text-gray-600"></p>
-            <button onclick="updateData()" class="w-full bg-green-500 text-white p-2 rounded mb-2">更新共用數據</button>
-            <div class="text-left font-mono bg-gray-50 p-3 rounded h-32 overflow-y-auto" id="data-display">
-                同步數據載入中...
-            </div>
-            <button onclick="logout()" class="w-full bg-red-500 text-white p-2 rounded mt-4">登出</button>
-        </div>
+        <!-- 空白主要區域（未來可以在這裡放置你想要的功能與內容） -->
+        <main class="h-full">
+            
+        </main>
     </div>
 
     <script>
-        // ⚠️ 記得之後要換成你自己的 Supabase 網址與 Anon Key
+        // Supabase 設定
         const SUPABASE_URL = 'https://lureabzpvkiekoruawak.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_LqVsGMmyTAwpeM1-OKb5Kw_oRGOwPbC';
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // 檢查登入狀態
         async function checkUser() {
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 document.getElementById('auth-section').classList.add('hidden');
                 document.getElementById('dashboard-section').classList.remove('hidden');
-                document.getElementById('user-email').innerText = `歡迎, ${session.user.email}`;
-                fetchAndSubscribeData();
+                document.getElementById('user-email').innerText = `已登入：${session.user.email}`;
             } else {
                 document.getElementById('auth-section').classList.remove('hidden');
                 document.getElementById('dashboard-section').classList.add('hidden');
@@ -69,32 +70,6 @@
         async function logout() {
             await supabase.auth.signOut();
             checkUser();
-        }
-
-        async function fetchAndSubscribeData() {
-            const display = document.getElementById('data-display');
-
-            const loadData = async () => {
-                const { data, error } = await supabase.from('room_status').select('*');
-                if (!error && data) {
-                    display.innerHTML = data.map(item => `<div>${item.updated_by}: ${item.message}</div>`).join('');
-                }
-            };
-            loadData();
-
-            supabase
-                .channel('public:room_status')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'room_status' }, payload => {
-                    loadData();
-                })
-                .subscribe();
-        }
-
-        async function updateData() {
-            const { data: { session } } = await supabase.auth.getSession();
-            await supabase.from('room_status').insert([
-                { message: '更新了一筆資料 ' + new Date().toLocaleTimeString(), updated_by: session.user.email }
-            ]);
         }
 
         checkUser();
