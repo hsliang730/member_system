@@ -88,8 +88,8 @@
                     <button onclick="switchTab('grades')" id="nav-grades" class="text-xs text-gray-500 hover:text-black transition whitespace-nowrap">成績登記</button>
                     <button onclick="switchTab('settings')" id="nav-settings" class="text-xs text-gray-500 hover:text-black transition whitespace-nowrap">設定</button>
                     <button onclick="switchTab('faq')" id="nav-faq" class="text-xs text-gray-500 hover:text-black transition whitespace-nowrap">問題發問</button>
-                    <!-- 修改：幫助按鈕樣式與旁邊工具列統一 -->
-                    <button onclick="openHelpModal()" id="nav-help" class="text-xs text-gray-500 hover:text-black transition whitespace-nowrap">幫助</button>
+                    <!-- 幫助分頁按鈕 -->
+                    <button onclick="switchTab('help')" id="nav-help" class="text-xs text-gray-500 hover:text-black transition whitespace-nowrap">幫助</button>
                 </nav>
 
                 <div class="hidden sm:block h-4 w-[1px] bg-gray-200"></div>
@@ -104,8 +104,9 @@
             </div>
         </div>
 
-        <div class="max-w-6xl mx-auto w-full my-6 sm:my-8">
+        <div class="max-w-6xl mx-auto w-full my-6 sm:my-8 flex-1">
             
+            <!-- 首頁 -->
             <div id="tab-home" class="space-y-6">
                 <div class="text-center mb-6 sm:mb-8">
                     <h2 class="text-2xl sm:text-3xl font-light tracking-wide text-gray-900">歡迎來到您的專屬空間</h2>
@@ -163,6 +164,7 @@
                 </div>
             </div>
 
+            <!-- 成績登記 -->
             <div id="tab-grades" class="hidden space-y-6 max-w-2xl mx-auto">
                 <h2 class="text-2xl font-light tracking-wide text-gray-900 mb-6 text-center">學員成績登記與管理</h2>
                 <div class="bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-3">
@@ -200,6 +202,7 @@
                 </div>
             </div>
 
+            <!-- 設定 (與常規設定顏色統一) -->
             <div id="tab-settings" class="hidden space-y-6 max-w-2xl mx-auto">
                 <h2 class="text-2xl font-light tracking-wide text-gray-900 mb-6 text-center">帳戶與系統設定</h2>
                 
@@ -209,12 +212,12 @@
                     <p class="text-sm text-gray-800">目前暱稱：<span id="set-nickname" class="text-black font-medium">尚未設定</span></p>
                 </div>
 
-                <!-- 新增：管理員專屬設定區 -->
-                <div id="admin-settings-section" class="hidden space-y-6 border-t border-b border-amber-200 py-6 my-6 bg-amber-50/40 p-5 rounded-xl">
-                    <p class="text-xs font-semibold text-amber-800 uppercase tracking-wider">👑 管理員系統控制台</p>
+                <!-- 管理員專屬設定區：樣式完全與其他設定一致 (bg-gray-50 border border-gray-200) -->
+                <div id="admin-settings-section" class="hidden bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-4">
+                    <p class="text-xs font-semibold text-gray-700 uppercase tracking-wider">👑 管理員系統控制台</p>
                     
                     <div class="space-y-3">
-                        <p class="text-xs font-medium text-gray-700">1. 修改網站版本序號與顯示狀態</p>
+                        <p class="text-xs font-medium text-gray-600">1. 修改網站版本序號與顯示狀態</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-[10px] text-gray-500 mb-1">版本序號 (如 v.0.0.1 Beta 1)</label>
@@ -228,8 +231,8 @@
                         <button onclick="saveAdminSiteConfig()" class="w-full bg-black text-white text-xs font-medium py-2 rounded-lg hover:bg-gray-800 transition">儲存版本與狀態</button>
                     </div>
 
-                    <div class="space-y-3 pt-2">
-                        <p class="text-xs font-medium text-gray-700">2. 修改「幫助」頁面內容</p>
+                    <div class="space-y-3 pt-2 border-t border-gray-200">
+                        <p class="text-xs font-medium text-gray-600">2. 修改「幫助」頁面內容</p>
                         <textarea id="setting-help-input" rows="4" class="w-full p-3 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入幫助說明文字..."></textarea>
                         <button onclick="saveAdminHelpText()" class="w-full bg-black text-white text-xs font-medium py-2 rounded-lg hover:bg-gray-800 transition">儲存幫助說明內容</button>
                     </div>
@@ -252,6 +255,7 @@
                 </div>
             </div>
 
+            <!-- 問題發問 -->
             <div id="tab-faq" class="hidden space-y-6 max-w-5xl mx-auto">
                 <div class="text-center mb-6">
                     <h2 class="text-2xl sm:text-3xl font-light tracking-wide text-gray-900">問題與回報發問</h2>
@@ -306,26 +310,28 @@
                 </div>
             </div>
 
+            <!-- 新增：獨立的「幫助」介面頁面 -->
+            <div id="tab-help" class="hidden space-y-6 max-w-3xl mx-auto">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl sm:text-3xl font-light tracking-wide text-gray-900">系統幫助與說明</h2>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 sm:p-8 space-y-4">
+                    <div class="flex items-center space-x-2 border-b border-gray-200 pb-3">
+                        <span class="text-lg">💡</span>
+                        <h3 class="text-sm font-medium uppercase tracking-wider text-gray-700">使用指南與說明</h3>
+                    </div>
+                    
+                    <div id="help-display-box" class="text-xs text-gray-600 leading-relaxed min-h-[160px] whitespace-pre-wrap bg-white p-4 rounded-lg border border-gray-200">
+                        目前尚無說明內容。
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div id="footer-version-text" class="text-center text-xs text-gray-300 font-light shrink-0 pt-2">
             My Website System - <span id="footer-v-tag">v.0.0.1 Beta 1</span>
-        </div>
-    </div>
-
-    <!-- 說明幫助彈窗 (純內容讀取) -->
-    <div id="help-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl p-6 max-w-md w-full space-y-4 shadow-xl">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-base font-medium text-gray-900">系統幫助與說明</h3>
-                <button onclick="closeHelpModal()" class="text-gray-400 hover:text-black">✕</button>
-            </div>
-            
-            <div id="help-display-box" class="text-xs text-gray-600 leading-relaxed min-h-[120px] whitespace-pre-wrap"></div>
-            
-            <div class="pt-2 text-right">
-                <button onclick="closeHelpModal()" class="px-4 py-1.5 bg-black text-white rounded-lg text-xs hover:bg-gray-800 transition">關閉</button>
-            </div>
         </div>
     </div>
 
@@ -515,15 +521,6 @@
             }
         }
 
-        // 幫助彈窗開啟與關閉
-        function openHelpModal() {
-            document.getElementById('help-modal').classList.remove('hidden');
-        }
-
-        function closeHelpModal() {
-            document.getElementById('help-modal').classList.add('hidden');
-        }
-
         function startSessionTimer() {
             sessionSeconds = 0;
             if (sessionTimerInterval) clearInterval(sessionTimerInterval);
@@ -555,7 +552,7 @@
         }
 
         function switchTab(tabName) {
-            ['home', 'grades', 'settings', 'faq'].forEach(t => {
+            ['home', 'grades', 'settings', 'faq', 'help'].forEach(t => {
                 const el = document.getElementById('tab-' + t);
                 const navBtn = document.getElementById('nav-' + t);
                 if (el) el.classList.toggle('hidden', t !== tabName);
