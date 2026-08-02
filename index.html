@@ -9,6 +9,7 @@
 </head>
 <body class="bg-white flex items-center justify-center min-h-screen text-gray-800 p-2 sm:p-4">
 
+    <!-- 登入卡片 -->
     <div id="auth-card" class="bg-white p-6 sm:p-8 border border-gray-200 rounded-xl shadow-sm w-full max-w-sm">
         <h1 id="form-title" class="text-2xl font-light mb-6 text-center tracking-wide text-gray-900">會員登入</h1>
         
@@ -17,9 +18,17 @@
             <input type="text" id="username" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black transition" placeholder="請輸入帳號">
         </div>
         
-        <div class="mb-6">
+        <div class="mb-4">
             <label class="block text-gray-600 text-xs uppercase tracking-wider font-medium mb-2">密碼</label>
             <input type="password" id="password" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black transition" placeholder="請輸入密碼">
+        </div>
+
+        <!-- 記住帳號密碼選單 -->
+        <div class="mb-6 flex items-center justify-between">
+            <label class="flex items-center text-xs text-gray-600 cursor-pointer">
+                <input type="checkbox" id="remember-me" class="rounded border-gray-300 text-black focus:ring-0 mr-2">
+                記住我的帳號與密碼
+            </label>
         </div>
 
         <button id="submit-btn" onclick="handleAuth()" class="w-full bg-black text-white font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 transition mb-4">登入</button>
@@ -32,6 +41,7 @@
         <p id="message" class="mt-4 text-center text-xs text-red-500"></p>
     </div>
 
+    <!-- 變更密碼卡片 -->
     <div id="change-password-card" class="hidden bg-white p-6 sm:p-8 border border-gray-200 rounded-xl shadow-sm w-full max-w-sm">
         <h1 class="text-2xl font-light mb-4 text-center tracking-wide text-gray-900">首次登入安全設定</h1>
         <p class="text-xs text-gray-500 mb-6 text-center leading-relaxed">為了帳戶安全，系統偵測到您使用的是預設或初次密碼，請先變更為您的專屬密碼。</p>
@@ -51,6 +61,7 @@
         <p id="pw-message" class="mt-4 text-center text-xs text-red-500"></p>
     </div>
 
+    <!-- 管理員後台 -->
     <div id="admin-dashboard" class="hidden bg-white p-6 sm:p-8 border border-gray-200 rounded-xl shadow-sm w-full max-w-lg">
         <h1 class="text-2xl font-light mb-4 text-center tracking-wide text-gray-900">管理員後台</h1>
         <p id="admin-user-info" class="text-gray-500 text-sm mb-6 text-center"></p>
@@ -61,6 +72,7 @@
         <button onclick="logout()" class="w-full bg-white border border-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-50 transition">登出</button>
     </div>
 
+    <!-- 會員中心 -->
     <div id="user-dashboard" class="hidden bg-white p-6 sm:p-8 border border-gray-200 rounded-xl shadow-sm w-full max-w-lg">
         <h1 class="text-2xl font-light mb-4 text-center tracking-wide text-gray-900">會員中心</h1>
         <p id="normal-user-info" class="text-gray-500 text-sm mb-6 text-center"></p>
@@ -71,6 +83,7 @@
         <button onclick="logout()" class="w-full bg-white border border-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-50 transition">登出</button>
     </div>
 
+    <!-- 全螢幕使用者面板 -->
     <div id="user-panel-view" class="hidden fixed inset-0 bg-white z-50 flex flex-col justify-between p-4 sm:p-8 md:p-12 overflow-y-auto">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-100 pb-4 sm:pb-6 shrink-0 gap-3">
             <div class="flex items-center space-x-3">
@@ -260,6 +273,7 @@
                     <h2 class="text-2xl sm:text-3xl font-light tracking-wide text-gray-900">問題與回報發問</h2>
                 </div>
 
+                <!-- 一般用戶 LINE & 發問紀錄 (LINE 風格聊天) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col items-center justify-center text-center h-[380px] sm:h-[440px]">
                         <div class="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl font-bold mb-3 shadow-sm">L</div>
@@ -274,7 +288,8 @@
                             <h3 class="text-xs font-medium uppercase tracking-wider text-gray-700">我的發問與客服回覆紀錄</h3>
                         </div>
 
-                        <div id="user-faq-chat-box" class="flex-1 bg-white border border-gray-200 rounded-lg p-3 overflow-y-auto space-y-3 mb-2 flex flex-col">
+                        <!-- 用戶端對話框 (LINE 聊天室風格) -->
+                        <div id="user-faq-chat-box" class="flex-1 bg-[#8cabd9]/20 border border-gray-200 rounded-lg p-3 overflow-y-auto space-y-3 mb-2 flex flex-col">
                             <p class="text-xs text-gray-400 text-center my-auto">尚無發問紀錄！</p>
                         </div>
 
@@ -285,26 +300,43 @@
                     </div>
                 </div>
 
+                <!-- 管理員發問管理區：手機版會自動切換雙頁面，且為 LINE 風格聊天 -->
                 <div id="admin-faq-management-section" class="hidden bg-gray-50 border border-gray-200 p-4 sm:p-6 rounded-xl space-y-4">
                     <div class="flex justify-between items-center border-b border-gray-200 pb-3">
                         <h3 class="text-xs sm:text-sm font-medium uppercase tracking-wider text-gray-700">【問題發問管理】管理員用戶發問與客服回覆</h3>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 h-[460px]">
-                        <div class="bg-white border border-gray-200 rounded-lg overflow-y-auto p-2 space-y-1 h-full">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 h-[480px] relative overflow-hidden">
+                        
+                        <!-- 手機版：左側用戶選單列表 -->
+                        <div id="admin-faq-user-panel" class="bg-white border border-gray-200 rounded-lg overflow-y-auto p-2 space-y-1 h-full w-full md:w-auto">
+                            <p class="text-xs font-semibold text-gray-400 p-2 border-b border-gray-100">請選擇要對話的用戶：</p>
                             <div id="admin-faq-user-list" class="space-y-1"></div>
                         </div>
 
-                        <div class="hidden md:flex md:col-span-2 bg-white border border-gray-200 rounded-lg flex-col justify-between p-3 h-full">
-                            <div id="admin-chat-messages" class="flex-1 overflow-y-auto space-y-3 p-2 bg-gray-50/50 rounded-lg mb-2">
-                                <p class="text-xs text-gray-400 text-center my-auto">尚未選擇用戶</p>
+                        <!-- 手機/電腦版：右側 LINE 風格聊天對話視窗 -->
+                        <div id="admin-faq-chat-panel" class="hidden md:flex md:col-span-2 bg-white border border-gray-200 rounded-lg flex-col justify-between p-3 h-full absolute inset-0 md:relative z-10 md:z-auto">
+                            
+                            <!-- 頂部標頭 + 手機版返回按鈕 -->
+                            <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2">
+                                <button onclick="closeAdminMobileChat()" class="md:hidden flex items-center text-xs text-gray-600 font-medium hover:text-black">
+                                    <span class="mr-1">←</span> 返回用戶列表
+                                </button>
+                                <span id="admin-chat-title" class="text-xs font-semibold text-gray-800 ml-auto md:ml-0">尚未選擇用戶</span>
                             </div>
 
+                            <!-- LINE 風格對話背景 -->
+                            <div id="admin-chat-messages" class="flex-1 overflow-y-auto space-y-3 p-3 bg-[#8cabd9]/20 rounded-lg mb-2 flex flex-col">
+                                <p class="text-xs text-gray-400 text-center my-auto">請從左側點選用戶開始聊天</p>
+                            </div>
+
+                            <!-- 下方回覆框 -->
                             <div id="admin-chat-input-box" class="hidden flex gap-2">
-                                <input type="text" id="admin-reply-input" class="flex-1 p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black" placeholder="輸入回覆...">
-                                <button onclick="sendAdminReplyToSelectedUser()" class="bg-black text-white text-xs px-4 py-2 rounded-lg shrink-0">回覆</button>
+                                <input type="text" id="admin-reply-input" class="flex-1 p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black" placeholder="輸入回覆訊息...">
+                                <button onclick="sendAdminReplyToSelectedUser()" class="bg-[#8cabd9] hover:bg-[#7292bf] text-white text-xs px-4 py-2 rounded-lg font-medium transition shrink-0">傳送回覆</button>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -347,6 +379,17 @@
         let selectedAdminChatUser = null;
         let siteConfigs = {};
 
+        // 當網頁載入完成時，檢查是否有記住的帳號密碼
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('remember_username');
+            const savedPass = localStorage.getItem('remember_password');
+            if (savedUser && savedPass) {
+                document.getElementById('username').value = savedUser;
+                document.getElementById('password').value = savedPass;
+                document.getElementById('remember-me').checked = true;
+            }
+        });
+
         function toggleMode() {
             isSignUp = !isSignUp;
             document.getElementById('form-title').innerText = isSignUp ? '註冊新帳號' : '會員登入';
@@ -358,12 +401,22 @@
         async function handleAuth() {
             const userInput = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('remember-me').checked;
             const msgEl = document.getElementById('message');
             msgEl.innerText = '';
 
             if (!userInput || !password) {
                 msgEl.innerText = '請完整填寫帳號與密碼';
                 return;
+            }
+
+            // 處理「記住帳號密碼」邏輯
+            if (rememberMe) {
+                localStorage.setItem('remember_username', userInput);
+                localStorage.setItem('remember_password', password);
+            } else {
+                localStorage.removeItem('remember_username');
+                localStorage.removeItem('remember_password');
             }
 
             const email = userInput + '@mathlearn.com';
@@ -468,13 +521,8 @@
                 .subscribe();
         }
 
-        // 讀取網站設定
         async function loadSiteConfig() {
-            const { data, error } = await supabaseClient.from('site_config').select('*');
-            if (error) {
-                console.error('讀取 site_config 失敗：', error.message);
-                return;
-            }
+            const { data } = await supabaseClient.from('site_config').select('*');
             if (!data) return;
 
             data.forEach(item => {
@@ -502,20 +550,18 @@
             }
         }
 
-        // 管理員於「設定區」儲存版本與狀態 (使用 upsert 強制寫入/新增)
         async function saveAdminSiteConfig() {
             const vVal = document.getElementById('setting-version-input').value.trim();
             const sVal = document.getElementById('setting-status-input').value.trim();
 
             let hasError = false;
-
             if (vVal) {
                 const { error } = await supabaseClient.from('site_config').upsert({ key: 'version_tag', value: vVal });
-                if (error) { alert('儲存版本序號失敗：' + error.message); hasError = true; }
+                if (error) { alert('儲存版本失敗: ' + error.message); hasError = true; }
             }
             if (sVal) {
                 const { error } = await supabaseClient.from('site_config').upsert({ key: 'status_tag', value: sVal });
-                if (error) { alert('儲存網站狀態失敗：' + error.message); hasError = true; }
+                if (error) { alert('儲存狀態失敗: ' + error.message); hasError = true; }
             }
 
             if (!hasError) {
@@ -524,13 +570,12 @@
             }
         }
 
-        // 管理員於「設定區」儲存幫助說明 (使用 upsert 強制寫入/新增)
         async function saveAdminHelpText() {
             const helpVal = document.getElementById('setting-help-input').value.trim();
             if (helpVal) {
                 const { error } = await supabaseClient.from('site_config').upsert({ key: 'help_text', value: helpVal });
                 if (error) {
-                    alert('儲存幫助內容失敗：' + error.message);
+                    alert('儲存幫助內容失敗: ' + error.message);
                 } else {
                     alert('幫助內容已成功更新！');
                     loadSiteConfig();
@@ -743,6 +788,7 @@
             loadUserFaqChat();
         }
 
+        // 用戶端 LINE 風格聊天室載入
         async function loadUserFaqChat() {
             const { data: list } = await supabaseClient.from('faq_submissions').select('*').eq('username', currentUsername).order('created_at', { ascending: true });
             const container = document.getElementById('user-faq-chat-box');
@@ -752,53 +798,107 @@
             }
 
             container.innerHTML = list.map(item => `
+                <!-- 用戶發言 (白色氣泡靠右) -->
                 <div class="flex flex-col items-end space-y-1">
-                    <div class="bg-[#9EE862] text-gray-900 p-2.5 rounded-2xl text-xs">${item.message}</div>
+                    <div class="bg-white text-gray-800 p-2.5 rounded-2xl rounded-tr-none text-xs shadow-sm max-w-[80%] break-words">
+                        ${item.message}
+                    </div>
+                    <span class="text-[9px] text-gray-500 mr-1">${new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                 </div>
+                <!-- 管理員回覆 (LINE綠色氣泡靠左) -->
                 ${item.reply ? `
                     <div class="flex flex-col items-start space-y-1">
-                        <span class="text-[10px] text-gray-400">客服管理員</span>
-                        <div class="bg-white border border-gray-200 text-gray-900 p-2.5 rounded-2xl text-xs">${item.reply}</div>
+                        <span class="text-[10px] text-gray-600 font-medium ml-1">客服管理員</span>
+                        <div class="bg-[#9EE862] text-gray-900 p-2.5 rounded-2xl rounded-tl-none text-xs shadow-sm max-w-[80%] break-words">
+                            ${item.reply}
+                        </div>
                     </div>
                 ` : ''}
             `).join('');
             container.scrollTop = container.scrollHeight;
         }
 
+        // 管理員：載入提問用戶列表
         async function loadAdminFaqList() {
             const { data: list } = await supabaseClient.from('faq_submissions').select('*').order('created_at', { ascending: false });
             if (!list) return;
 
             const users = [...new Set(list.map(i => i.username))];
             const userListContainer = document.getElementById('admin-faq-user-list');
+            if (users.length === 0) {
+                userListContainer.innerHTML = '<p class="text-xs text-gray-400 p-2">目前沒有用戶提問</p>';
+                return;
+            }
+
             userListContainer.innerHTML = users.map(u => `
-                <button onclick="selectAdminChatUser('${u}')" class="w-full text-left p-2.5 rounded-lg text-xs hover:bg-gray-100">${u}</button>
+                <button onclick="selectAdminChatUser('${u}')" class="w-full text-left p-3 rounded-lg text-xs hover:bg-gray-100 flex items-center justify-between border border-gray-100 transition">
+                    <span class="font-medium text-gray-800">👤 ${u}</span>
+                    <span class="text-gray-400 text-[10px]">➔</span>
+                </button>
             `).join('');
         }
 
+        // 管理員：選擇用戶後，手機版切換顯示聊天視窗
         function selectAdminChatUser(u) {
             selectedAdminChatUser = u;
+            document.getElementById('admin-chat-title').innerText = `與 ${u} 的對話`;
             document.getElementById('admin-chat-input-box').classList.remove('hidden');
+
+            // 手機版：將聊天視窗顯示出（移除 hidden），隱藏用戶清單
+            const chatPanel = document.getElementById('admin-faq-chat-panel');
+            chatPanel.classList.remove('hidden');
+            chatPanel.classList.add('flex');
+
             renderAdminChat();
         }
 
-        async function renderAdminChat() {
-            const { data: list } = await supabaseClient.from('faq_submissions').select('*').eq('username', selectedAdminChatUser).order('created_at', { ascending: true });
-            const chatMessages = document.getElementById('admin-chat-messages');
-            chatMessages.innerHTML = list.map(item => `
-                <div class="text-xs mb-2">
-                    <p class="font-semibold">${item.username}: ${item.message}</p>
-                    ${item.reply ? `<p class="text-green-600 pl-2">➔ 管理員回覆: ${item.reply}</p>` : ''}
-                </div>
-            `).join('');
+        // 管理員：手機版點擊「返回用戶列表」
+        function closeAdminMobileChat() {
+            const chatPanel = document.getElementById('admin-faq-chat-panel');
+            chatPanel.classList.add('hidden');
+            chatPanel.classList.remove('flex');
         }
 
+        // 管理員：渲染 LINE 風格對話視窗內容
+        async function renderAdminChat() {
+            if (!selectedAdminChatUser) return;
+            const { data: list } = await supabaseClient.from('faq_submissions').select('*').eq('username', selectedAdminChatUser).order('created_at', { ascending: true });
+            const chatMessages = document.getElementById('admin-chat-messages');
+
+            if (!list || list.length === 0) {
+                chatMessages.innerHTML = '<p class="text-xs text-gray-400 text-center my-auto">該用戶尚無對話</p>';
+                return;
+            }
+
+            chatMessages.innerHTML = list.map(item => `
+                <!-- 用戶提問 (白色氣泡靠左) -->
+                <div class="flex flex-col items-start space-y-1">
+                    <span class="text-[10px] text-gray-600 font-medium ml-1">${item.username}</span>
+                    <div class="bg-white text-gray-800 p-2.5 rounded-2xl rounded-tl-none text-xs shadow-sm max-w-[85%] break-words">
+                        ${item.message}
+                    </div>
+                </div>
+
+                <!-- 管理員已回覆內容 (LINE綠色氣泡靠右) -->
+                ${item.reply ? `
+                    <div class="flex flex-col items-end space-y-1">
+                        <span class="text-[10px] text-gray-500 mr-1">管理員回覆</span>
+                        <div class="bg-[#9EE862] text-gray-900 p-2.5 rounded-2xl rounded-tr-none text-xs shadow-sm max-w-[85%] break-words">
+                            ${item.reply}
+                        </div>
+                    </div>
+                ` : ''}
+            `).join('');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 管理員：發送回覆
         async function sendAdminReplyToSelectedUser() {
             const reply = document.getElementById('admin-reply-input').value.trim();
             if (!reply || !selectedAdminChatUser) return;
 
             const { data: list } = await supabaseClient.from('faq_submissions').select('id').eq('username', selectedAdminChatUser).order('created_at', { ascending: false }).limit(1);
-            if (list.length > 0) {
+            if (list && list.length > 0) {
                 await supabaseClient.from('faq_submissions').update({ reply }).eq('id', list[0].id);
                 document.getElementById('admin-reply-input').value = '';
                 renderAdminChat();
