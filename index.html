@@ -124,11 +124,31 @@
         <p id="pw-message" class="mt-2 text-center text-xs text-red-500"></p>
     </div>
 
-    <!-- 管理員後台 -->
+    <!-- 管理員後台 (已加入登入時即可選擇 Ban 或強制更改密碼的選項) -->
     <div id="admin-dashboard" class="hidden bg-white p-6 sm:p-8 border border-gray-200 rounded-xl shadow-sm w-full max-w-lg">
         <h1 class="text-2xl font-light mb-4 text-center tracking-wide text-gray-900">管理員後台</h1>
-        <p id="admin-user-info" class="text-gray-500 text-sm mb-6 text-center"></p>
-        <button onclick="goToUserPanel()" class="w-full bg-black text-white font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 transition mb-3">進入使用者面板（下一步）</button>
+        <p id="admin-user-info" class="text-gray-500 text-sm mb-4 text-center"></p>
+
+        <!-- 管理員快速用戶控制區塊 -->
+        <div class="bg-gray-50 border border-gray-200 p-4 rounded-lg mb-4 space-y-3">
+            <p class="text-xs font-semibold text-gray-700 uppercase tracking-wider">⚡ 快速會員管理（Ban / 強制更改密碼）</p>
+            <p class="text-[11px] text-gray-500">您可直接於下方選擇會員進行封鎖（Ban）或遠端強制其下次登入更改密碼：</p>
+            <div class="bg-white border border-gray-200 rounded-lg max-h-48 overflow-y-auto p-2 custom-scrollbar">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-gray-100 text-gray-600">
+                        <tr>
+                            <th class="p-2">帳號 / 識別</th>
+                            <th class="p-2 text-right">管理動作選項</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-dashboard-user-list">
+                        <tr><td colspan="2" class="p-2 text-center text-gray-400">載入用戶列表中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <button onclick="goToUserPanel()" class="w-full bg-black text-white font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 transition mb-3">進入完整使用者面板</button>
         <button onclick="logout()" class="w-full bg-white border border-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-50 transition">登出</button>
     </div>
 
@@ -752,7 +772,7 @@
             }
         }
 
-        function showDashboard(userInput) {
+        async function showDashboard(userInput) {
             document.getElementById('admin-dashboard').classList.add('hidden');
             document.getElementById('user-dashboard').classList.add('hidden');
             document.getElementById('user-panel-view').classList.add('hidden');
@@ -760,6 +780,7 @@
             if (userInput === 'hsliang-admin') {
                 document.getElementById('admin-dashboard').classList.remove('hidden');
                 document.getElementById('admin-user-info').innerText = '當前登入帳號： ' + userInput;
+                await loadAdminDashboardUserList(); // 載入管理員後台的用戶 Ban 與強制改密碼清單
             } else {
                 document.getElementById('user-dashboard').classList.remove('hidden');
                 document.getElementById('normal-user-info').innerText = '當前登入帳號： ' + userInput;
@@ -857,6 +878,30 @@
             localStorage.removeItem('impersonator_admin');
             alert('已退出模擬登入，返回管理員身份。');
             location.reload();
+        }
+
+        // 載入管理員後台專用的用戶清單（包含 Ban / 強制改密碼按鈕）
+        async function loadAdminDashboardUserList() {
+            const { data: gradesList } = await supabaseClient.from('grades').select('username');
+            const { data: forumList } = await supabaseClient.from('forum_messages').select('username');
+            
+            let allUsers = ['hsliang-admin'];
+            if (gradesList) gradesList.forEach(i => allUsers.push(i.username));
+            if (forumList) forumList.forEach(i => allUsers.push(i.username));
+            
+            let uniqueUsers = [...new Set(allUsers)].filter(u => u !== 'hsliang-admin');
+            if (uniqueUsers.length === 0) uniqueUsers = ['test_user'];
+
+            const tbody = document.getElementById('admin-dashboard-user-list');
+            tbody.innerHTML = uniqueUsers.map(u => `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="p-2 font-mono text-gray-800">👤 ${u}</td>
+                    <td class="p-2 text-right space-x-1">
+                        <button onclick="toggleUserBan('${u}')" class="bg-amber-600 hover:bg-amber-700 text-white text-[10px] px-2 py-1 rounded transition">Ban / 解封</button>
+                        <button onclick="forceUserPasswordChange('${u}')" class="bg-red-600 hover:bg-red-700 text-white text-[10px] px-2 py-1 rounded transition">強制改密碼</button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
         async function loadAdminImpersonateUsers() {
