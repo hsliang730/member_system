@@ -2,99 +2,729 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+    <title>我的網站 - 會員系統</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>會員系統除錯版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="bg-white flex items-center justify-center min-h-screen text-gray-800 p-2 sm:p-4">
 
-    <!-- 登入前畫面 -->
-    <div id="auth-section" class="bg-white p-8 rounded-xl shadow-md w-96 text-center">
-        <h1 class="text-2xl font-bold mb-4">會員登入 (除錯版)</h1>
-        <input type="text" id="username" placeholder="請輸入帳號" class="w-full p-2 mb-3 border rounded"><br>
-        <input type="password" id="password" placeholder="密碼" class="w-full p-2 mb-3 border rounded"><br>
-        <button id="login-btn" class="w-full bg-blue-500 text-white p-2 rounded mb-2 hover:bg-blue-600 cursor-pointer">登入</button>
-        <button id="signup-btn" class="w-full bg-gray-300 text-gray-700 p-2 rounded hover:bg-gray-400 cursor-pointer">註冊</button>
+    <div id="auth-card" class="bg-white p-6 sm:p-8 border border-gray-200 rounded-xl shadow-sm w-full max-w-sm">
+        <h1 id="form-title" class="text-2xl font-light mb-6 text-center tracking-wide text-gray-900">會員登入</h1>
+        
+        <div class="mb-4">
+            <label class="block text-gray-600 text-xs uppercase tracking-wider font-medium mb-2">帳號名稱</label>
+            <input type="text" id="username" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black transition" placeholder="請輸入帳號">
+        </div>
+        
+        <div class="mb-6">
+            <label class="block text-gray-600 text-xs uppercase tracking-wider font-medium mb-2">密碼</label>
+            <input type="password" id="password" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black transition" placeholder="請輸入密碼">
+        </div>
+
+        <button id="submit-btn" onclick="handleAuth()" class="w-full bg-black text-white font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 transition mb-4">登入</button>
+        
+        <div class="flex justify-between text-xs text-gray-500">
+            <button onclick="toggleMode()" id="toggle-btn" class="hover:text-black transition">沒有帳號？點此註冊</button>
+            <button onclick="resetPassword()" class="hover:text-black transition">忘記密碼？</button>
+        </div>
+        
+        <p id="message" class="mt-4 text-center text-xs text-red-500"></p>
     </div>
 
-    <!-- 登入後空白頁面 -->
-    <div id="dashboard-section" class="hidden fixed inset-0 bg-white p-6">
-        <div class="flex justify-between items-center pb-4 border-b">
-            <span id="user-email" class="text-gray-500 text-sm"></span>
-            <button id="logout-btn" class="bg-red-500 text-white px-4 py-1.5 rounded text-sm hover:bg-red-600 cursor-pointer">登出</button>
+    <div id="change-password-card" class="hidden bg-white p-6 sm:p-8 border border-gray-200 rounded-xl shadow-sm w-full max-w-sm">
+        <h1 class="text-2xl font-light mb-4 text-center tracking-wide text-gray-900">首次登入安全設定</h1>
+        <p class="text-xs text-gray-500 mb-6 text-center leading-relaxed">為了帳戶安全，系統偵測到您使用的是預設或初次密碼，請先變更為您的專屬密碼。</p>
+        
+        <div class="mb-4">
+            <label class="block text-gray-600 text-xs uppercase tracking-wider font-medium mb-2">新密碼</label>
+            <input type="password" id="new-password" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black transition" placeholder="請輸入新密碼 (至少6碼)">
         </div>
-        <main class="h-full flex items-center justify-center">
-            <h2 class="text-xl text-gray-400">登入成功！這是空白頁面</h2>
-        </main>
+        
+        <div class="mb-6">
+            <label class="block text-gray-600 text-xs uppercase tracking-wider font-medium mb-2">確認新密碼</label>
+            <input type="password" id="confirm-password" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black transition" placeholder="請再次輸入新密碼">
+        </div>
+
+        <button onclick="handleForceChangePassword()" class="w-full bg-black text-white font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 transition mb-4">確認修改並進入系統</button>
+        
+        <p id="pw-message" class="mt-4 text-center text-xs text-red-500"></p>
+    </div>
+
+    <div id="admin-dashboard" class="hidden bg-white p-6 sm:p-8 border border-gray-200 rounded-xl shadow-sm w-full max-w-lg">
+        <h1 class="text-2xl font-light mb-4 text-center tracking-wide text-gray-900">管理員後台</h1>
+        <p id="admin-user-info" class="text-gray-500 text-sm mb-6 text-center"></p>
+        <div class="bg-gray-50 border border-gray-200 p-4 rounded-lg mb-6">
+            <p class="text-xs text-gray-600 leading-relaxed">您目前擁有最高權限（Admin），可以檢視與管理所有系統資料。</p>
+        </div>
+        <button onclick="goToUserPanel()" class="w-full bg-black text-white font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 transition mb-3">進入使用者面板（下一步）</button>
+        <button onclick="logout()" class="w-full bg-white border border-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-50 transition">登出</button>
+    </div>
+
+    <div id="user-dashboard" class="hidden bg-white p-6 sm:p-8 border border-gray-200 rounded-xl shadow-sm w-full max-w-lg">
+        <h1 class="text-2xl font-light mb-4 text-center tracking-wide text-gray-900">會員中心</h1>
+        <p id="normal-user-info" class="text-gray-500 text-sm mb-6 text-center"></p>
+        <div class="bg-gray-50 border border-gray-200 p-4 rounded-lg mb-6">
+            <p class="text-xs text-gray-600 leading-relaxed">您已成功登入一般會員系統。</p>
+        </div>
+        <button onclick="goToUserPanel()" class="w-full bg-black text-white font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 transition mb-3">進入使用者面板（下一步）</button>
+        <button onclick="logout()" class="w-full bg-white border border-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-50 transition">登出</button>
+    </div>
+
+    <div id="user-panel-view" class="hidden fixed inset-0 bg-white z-50 flex flex-col justify-between p-4 sm:p-8 md:p-12 overflow-y-auto">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-100 pb-4 sm:pb-6 shrink-0 gap-3">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-lg sm:text-xl font-light tracking-wide text-gray-900">使用者面板</h1>
+                <div class="flex items-center space-x-2 text-[11px] bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full border border-gray-200">
+                    <span id="display-version-tag" class="font-medium">v.0.0.1 Beta 1</span>
+                    <span class="text-gray-300">|</span>
+                    <span id="display-status-tag" class="text-amber-600 font-light">目前網站開站中</span>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3 sm:space-x-6 w-full sm:w-auto justify-between sm:justify-end">
+                <nav class="flex items-center space-x-3 sm:space-x-5 overflow-x-auto py-1">
+                    <button onclick="switchTab('home')" id="nav-home" class="text-xs text-gray-900 font-medium hover:text-black transition whitespace-nowrap">首頁</button>
+                    <button onclick="switchTab('grades')" id="nav-grades" class="text-xs text-gray-500 hover:text-black transition whitespace-nowrap">成績登記</button>
+                    <button onclick="switchTab('settings')" id="nav-settings" class="text-xs text-gray-500 hover:text-black transition whitespace-nowrap">設定</button>
+                    <button onclick="switchTab('faq')" id="nav-faq" class="text-xs text-gray-500 hover:text-black transition whitespace-nowrap">問題發問</button>
+                </nav>
+
+                <div class="hidden sm:block h-4 w-[1px] bg-gray-200"></div>
+
+                <div class="flex items-center space-x-2">
+                    <span id="panel-user-info" class="text-xs text-gray-600 font-medium"></span>
+                    <span id="session-timer" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded border border-gray-200 font-mono">使用 0分0秒</span>
+                </div>
+
+                <button onclick="backToDashboard()" class="text-xs text-gray-600 hover:text-black transition">返回上一步</button>
+                <button onclick="logout()" class="text-xs text-red-500 hover:text-red-700 transition">登出</button>
+            </div>
+        </div>
+
+        <div class="max-w-6xl mx-auto w-full my-6 sm:my-8">
+            
+            <div id="tab-home" class="space-y-6">
+                <div class="text-center mb-6 sm:mb-8">
+                    <h2 class="text-2xl sm:text-3xl font-light tracking-wide text-gray-900">歡迎來到您的專屬空間</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col justify-between h-[380px] sm:h-[420px]">
+                        <div>
+                            <h3 class="text-sm font-medium uppercase tracking-wider text-gray-700 mb-3 flex items-center justify-between">
+                                <span>1. 即時發布訊息</span>
+                                <span id="admin-badge-1" class="hidden text-[10px] bg-black text-white px-2 py-0.5 rounded">管理員</span>
+                            </h3>
+                            <div id="admin-announce-box" class="hidden mb-3">
+                                <textarea id="announce-input" rows="2" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入要發布給大家的訊息..."></textarea>
+                                <button onclick="postAnnouncement()" class="w-full mt-1 bg-black text-white text-xs py-1.5 rounded-lg hover:bg-gray-800 transition">發布公告</button>
+                            </div>
+                            <div id="announce-list" class="space-y-2 overflow-y-auto h-[240px] sm:h-[280px] pr-1">
+                                <p class="text-xs text-gray-400 text-center mt-12">目前尚無即時訊息</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col justify-between h-[380px] sm:h-[420px]">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 id="folder-path-title" class="text-sm font-medium uppercase tracking-wider text-gray-700 truncate w-40 sm:w-44">2. 講義資料夾</h3>
+                                <button id="back-folder-btn" onclick="goParentFolder()" class="hidden text-[11px] text-gray-500 hover:text-black shrink-0">← 上一層</button>
+                            </div>
+
+                            <div id="admin-folder-box" class="hidden mb-2 space-y-1">
+                                <div class="flex gap-1 items-center">
+                                    <input type="text" id="handout-title" class="w-24 sm:w-28 p-1.5 bg-white border border-gray-200 rounded text-xs focus:outline-none focus:border-black" placeholder="檔案名稱">
+                                    <input type="file" id="handout-file-input" class="w-full text-[10px] text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300">
+                                    <button onclick="uploadHandoutRealFile()" class="bg-black text-white text-xs px-2.5 py-1 rounded shrink-0">上傳</button>
+                                </div>
+                            </div>
+
+                            <div id="folder-view-container" class="space-y-2 overflow-y-auto h-[220px] sm:h-[260px] pr-1">
+                                <p class="text-xs text-gray-400 text-center mt-12">尚無資料夾</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col justify-between h-[380px] sm:h-[420px]">
+                        <div class="flex flex-col h-full">
+                            <h3 class="text-sm font-medium uppercase tracking-wider text-gray-700 mb-3">3. 發問論壇聊天</h3>
+                            <div id="forum-list" class="space-y-2 overflow-y-auto flex-1 pr-1 bg-white p-3 border border-gray-200 rounded-lg mb-2">
+                                <p class="text-xs text-gray-400 text-center mt-12">大家一起來聊聊吧！</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" id="forum-input" class="flex-1 p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black" placeholder="輸入聊天內容...">
+                                <button onclick="postForumMessage()" class="bg-black text-white text-xs px-3 py-2 rounded-lg hover:bg-gray-800 transition">發送</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="tab-grades" class="hidden space-y-6 max-w-2xl mx-auto">
+                <h2 class="text-2xl font-light tracking-wide text-gray-900 mb-6 text-center">學員成績登記與管理</h2>
+
+                <div class="bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-3">
+                    <p class="text-xs uppercase tracking-wider text-gray-400 font-medium">填入您的成績</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <input type="text" id="grade-subject" class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black" placeholder="科目 (例: 數學)">
+                        <input type="text" id="grade-range" class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black" placeholder="範圍 (例: 第二冊 1-2)">
+                        <input type="number" id="grade-score" class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black" placeholder="成績 (例: 85)">
+                    </div>
+                    <button onclick="submitGrade()" class="w-full bg-black text-white text-xs font-medium py-2 rounded-lg hover:bg-gray-800 transition">送出成績</button>
+                    <p id="grade-msg" class="text-xs text-green-600 text-center"></p>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-3">
+                    <div class="flex justify-between items-center">
+                        <p id="grade-list-title" class="text-xs uppercase tracking-wider text-gray-500 font-semibold">成績記錄與統計</p>
+                        <button onclick="loadGrades()" class="text-[11px] text-gray-500 hover:text-black underline">重新整理</button>
+                    </div>
+                    <div id="grade-stats-summary" class="bg-white p-3 border border-gray-200 rounded-lg text-xs text-gray-700"></div>
+                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden max-h-56 overflow-y-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-gray-100 text-gray-600 border-b border-gray-200">
+                                <tr>
+                                    <th class="p-2.5">學員</th>
+                                    <th class="p-2.5">科目</th>
+                                    <th class="p-2.5">範圍</th>
+                                    <th class="p-2.5">成績</th>
+                                    <th class="p-2.5">時間</th>
+                                    <th id="th-action-header" class="p-2.5 hidden">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="grade-table-body">
+                                <tr><td colspan="6" class="p-3 text-center text-gray-400">尚無成績記錄</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-settings" class="hidden space-y-6 max-w-2xl mx-auto">
+                <h2 class="text-2xl font-light tracking-wide text-gray-900 mb-6 text-center">帳戶與系統設定</h2>
+
+                <div class="bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-2">
+                    <p class="text-xs uppercase tracking-wider text-gray-400 font-medium">當前使用者資訊</p>
+                    <p class="text-sm text-gray-800">登入帳號：<span id="set-username" class="font-mono text-gray-600"></span></p>
+                    <p class="text-sm text-gray-800">目前暱稱：<span id="set-nickname" class="text-black font-medium">尚未設定</span></p>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-3">
+                    <p class="text-xs uppercase tracking-wider text-gray-400 font-medium">建立與修改暱稱</p>
+                    <div>
+                        <input type="text" id="input-nickname" class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black transition mb-2" placeholder="請輸入您想顯示的暱稱">
+                        <button onclick="updateNickname()" class="w-full bg-black text-white text-xs font-medium py-2 px-4 rounded-lg hover:bg-gray-800 transition">儲存暱稱</button>
+                    </div>
+                    <p id="nickname-msg" class="text-xs text-green-600 text-center"></p>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-3">
+                    <p class="text-xs uppercase tracking-wider text-gray-400 font-medium">更改密碼</p>
+                    <div>
+                        <input type="password" id="set-new-password" class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black transition mb-2" placeholder="請輸入新密碼 (至少6碼)">
+                        <button onclick="updatePassword()" class="w-full bg-black text-white text-xs font-medium py-2 px-4 rounded-lg hover:bg-gray-800 transition">確認變更密碼</button>
+                    </div>
+                    <p id="password-msg" class="text-xs text-center"></p>
+                </div>
+
+                <div class="pt-2 pb-4">
+                    <button onclick="logout()" class="w-full bg-white border border-gray-300 text-red-500 font-medium py-2.5 px-4 rounded-lg hover:bg-red-50 transition text-sm">登出系統</button>
+                </div>
+            </div>
+
+            <div id="tab-faq" class="hidden space-y-6 max-w-5xl mx-auto">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl sm:text-3xl font-light tracking-wide text-gray-900">問題與回報發問</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col items-center justify-center text-center h-[380px] sm:h-[440px]">
+                        <div class="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl font-bold mb-3 shadow-sm">L</div>
+                        <h3 class="text-base font-medium text-gray-900 mb-1">加入 Line 官方帳號</h3>
+                        <p class="text-xs font-mono text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200 mb-2">代碼：@682knyxn</p>
+                        <p class="text-xs text-gray-500 leading-relaxed mb-4">點擊下方按鈕或搜尋代碼加入客服 Line，獲得即時一對一解答與最新通知！</p>
+                        <a href="https://line.me" target="_blank" class="bg-green-600 hover:bg-green-700 text-white text-xs font-medium py-2.5 px-6 rounded-lg transition">點擊加 Line 好友</a>
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col justify-between h-[400px] sm:h-[440px]">
+                        <div class="flex items-center justify-between border-b border-gray-200 pb-2 mb-2">
+                            <h3 class="text-xs font-medium uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+                                我的發問與客服回覆紀錄
+                            </h3>
+                        </div>
+
+                        <div id="user-faq-chat-box" class="flex-1 bg-white border border-gray-200 rounded-lg p-3 overflow-y-auto space-y-3 mb-2 flex flex-col">
+                            <p class="text-xs text-gray-400 text-center my-auto">尚無發問紀錄，請在下方傳送訊息！</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <textarea id="faq-message-input" rows="2" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入要問的問題..."></textarea>
+                            <button onclick="submitFaqQuestion()" class="w-full bg-black text-white text-xs font-medium px-4 py-2 rounded-lg hover:bg-gray-800 transition">傳送</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="admin-faq-management-section" class="hidden bg-gray-50 border border-gray-200 p-4 sm:p-6 rounded-xl space-y-4">
+                    <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+                        <h3 class="text-xs sm:text-sm font-medium uppercase tracking-wider text-gray-700">【問題發問管理】管理員用戶發問與客服回覆</h3>
+                        <button onclick="loadAdminFaqList()" class="text-[11px] text-gray-500 hover:text-black underline">重新整理</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 h-[460px]">
+                        <div id="admin-mobile-user-list-pane" class="bg-white border border-gray-200 rounded-lg overflow-y-auto p-2 space-y-1 h-full flex flex-col">
+                            <p class="text-[10px] text-gray-400 font-semibold px-2 py-1 uppercase tracking-wider">點選用戶聊天</p>
+                            <div id="admin-faq-user-list" class="space-y-1 flex-1"></div>
+                        </div>
+
+                        <div id="admin-mobile-chat-pane" class="hidden md:flex md:col-span-2 bg-white border border-gray-200 rounded-lg flex-col justify-between p-3 h-full">
+                            <div id="admin-chat-header" class="border-b border-gray-100 pb-2 mb-2 text-xs font-medium text-gray-700 flex items-center justify-between">
+                                <span>請從左側點選一位用戶以檢視對話並回覆</span>
+                            </div>
+                            
+                            <div id="admin-chat-messages" class="flex-1 overflow-y-auto space-y-3 pr-1 p-2 bg-gray-50/50 rounded-lg mb-2">
+                                <p class="text-xs text-gray-400 text-center my-auto">尚未選擇用戶</p>
+                            </div>
+
+                            <div id="admin-chat-input-box" class="hidden flex gap-2">
+                                <input type="text" id="admin-reply-input" class="flex-1 p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black" placeholder="輸入回覆訊息給該用戶...">
+                                <button onclick="sendAdminReplyToSelectedUser()" class="bg-black text-white text-xs px-4 py-2 rounded-lg hover:bg-gray-800 transition shrink-0">回覆</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="footer-version-text" class="text-center text-xs text-gray-300 font-light shrink-0 pt-2">
+            My Website System - v.0.0.1 Beta 1
+        </div>
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://lureabzpvkiekoruawak.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_LqVsGMmyTAwpeM1-OKb5Kw_oRGOwPbC';
-        
-        let supabase;
-        try {
-            supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (e) {
-            alert('Supabase 初始化失敗: ' + e.message);
+        const SUPABASE_URL = 'https://kbfiliuhlrcvqgwixpaa.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_jTtHGAFWZ5gr1aevYPaukA_w6mdh6jk';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let isSignUp = false;
+        let currentUsername = '';
+        let currentUserObject = null;
+        let sessionTimerInterval = null;
+        let sessionSeconds = 0;
+        let selectedAdminChatUser = null;
+
+        function toggleMode() {
+            isSignUp = !isSignUp;
+            document.getElementById('form-title').innerText = isSignUp ? '註冊新帳號' : '會員登入';
+            document.getElementById('submit-btn').innerText = isSignUp ? '註冊' : '登入';
+            document.getElementById('toggle-btn').innerText = isSignUp ? '已有帳號？點此登入' : '沒有帳號？點此註冊';
+            document.getElementById('message').innerText = '';
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const loginBtn = document.getElementById('login-btn');
-            const signupBtn = document.getElementById('signup-btn');
-            const logoutBtn = document.getElementById('logout-btn');
+        async function handleAuth() {
+            const userInput = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const msgEl = document.getElementById('message');
+            msgEl.innerText = '';
 
-            async function checkUser() {
-                try {
-                    const { data: { session } } = await supabase.auth.getSession();
-                    if (session) {
-                        document.getElementById('auth-section').classList.add('hidden');
-                        document.getElementById('dashboard-section').classList.remove('hidden');
-                        document.getElementById('user-email').innerText = `已登入：${session.user.email.split('@')[0]}`;
-                    } else {
-                        document.getElementById('auth-section').classList.remove('hidden');
-                        document.getElementById('dashboard-section').classList.add('hidden');
-                    }
-                } catch (e) {
-                    console.error(e);
-                }
+            if (!userInput || !password) {
+                msgEl.innerText = '請完整填寫帳號與密碼';
+                return;
             }
 
-            loginBtn.addEventListener('click', async () => {
-                const rawName = usernameInput.value.trim();
-                const password = passwordInput.value.trim();
-                
-                if (!rawName || !password) {
-                    alert('請輸入帳號和密碼！');
-                    return;
-                }
+            const email = userInput + '@mathlearn.com';
 
-                const email = rawName + '@mathlearn.com';
-                alert('準備登入帳號: ' + email); // 測試點擊有沒有反應
-
-                try {
-                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                    if (error) {
-                        alert('登入失敗回傳: ' + error.message);
-                    } else {
-                        alert('登入成功！');
-                        checkUser();
-                    }
-                } catch (err) {
-                    alert('發生嚴重錯誤: ' + err.message);
+            if (isSignUp) {
+                const { data, error } = await supabaseClient.auth.signUp({ 
+                    email, password, options: { data: { must_change_password: true, nickname: '' } }
+                });
+                if (error) {
+                    msgEl.innerText = '註冊失敗: ' + error.message;
+                } else {
+                    alert('註冊成功！現在可以登入了。');
+                    isSignUp = false;
+                    toggleMode();
                 }
+            } else {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) {
+                    msgEl.innerText = '登入失敗: 帳號或密碼錯誤';
+                } else {
+                    currentUsername = userInput;
+                    currentUserObject = data.user;
+                    checkUserLoginState(data.user, userInput);
+                }
+            }
+        }
+
+        function checkUserLoginState(user, userInput) {
+            document.getElementById('auth-card').classList.add('hidden');
+            const metadata = user.user_metadata || {};
+            if (metadata.must_change_password === true) {
+                document.getElementById('change-password-card').classList.remove('hidden');
+            } else {
+                showDashboard(userInput);
+            }
+        }
+
+        function showDashboard(userInput) {
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('user-dashboard').classList.add('hidden');
+            document.getElementById('user-panel-view').classList.add('hidden');
+
+            if (userInput === 'hsliang-admin') {
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                document.getElementById('admin-user-info').innerText = '當前登入帳號： ' + userInput;
+            } else {
+                document.getElementById('user-dashboard').classList.remove('hidden');
+                document.getElementById('normal-user-info').innerText = '當前登入帳號： ' + userInput;
+            }
+        }
+
+        async function handleForceChangePassword() {
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            if (newPassword !== confirmPassword || newPassword.length < 6) return;
+
+            const { data, error } = await supabaseClient.auth.updateUser({
+                password: newPassword,
+                data: { must_change_password: false }
             });
 
-            logoutBtn.addEventListener('click', async () => {
-                await supabase.auth.signOut();
-                checkUser();
-            });
+            if (!error) {
+                alert('密碼修改成功！');
+                document.getElementById('change-password-card').classList.add('hidden');
+                showDashboard(currentUsername);
+            }
+        }
 
-            checkUser();
-        });
+        function goToUserPanel() {
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('user-dashboard').classList.add('hidden');
+            document.getElementById('user-panel-view').classList.remove('hidden');
+            
+            updateUserDisplayInfo();
+            checkAdminFeatures();
+            switchTab('home');
+            startSessionTimer();
+
+            // 載入雲端資料
+            loadAnnouncements();
+            renderFolderView();
+            loadForumMessages();
+            loadGrades();
+            loadUserFaqChat();
+            if (currentUsername === 'hsliang-admin') loadAdminFaqList();
+
+            // 開啟即時廣播自動同步
+            listenRealtimeUpdates();
+        }
+
+        function listenRealtimeUpdates() {
+            supabaseClient.channel('public:announcements')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => loadAnnouncements())
+                .subscribe();
+
+            supabaseClient.channel('public:forum_messages')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'forum_messages' }, () => loadForumMessages())
+                .subscribe();
+
+            supabaseClient.channel('public:faq_submissions')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'faq_submissions' }, () => {
+                    loadUserFaqChat();
+                    if (currentUsername === 'hsliang-admin') loadAdminFaqList();
+                })
+                .subscribe();
+        }
+
+        function startSessionTimer() {
+            sessionSeconds = 0;
+            if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+            sessionTimerInterval = setInterval(() => {
+                sessionSeconds++;
+                document.getElementById('session-timer').innerText = `使用 ${Math.floor(sessionSeconds / 60)}分${sessionSeconds % 60}秒`;
+            }, 1000);
+        }
+
+        async function updateUserDisplayInfo() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (user) {
+                currentUserObject = user;
+                const nickname = user.user_metadata?.nickname || '';
+                document.getElementById('panel-user-info').innerText = nickname || currentUsername;
+                document.getElementById('set-username').innerText = currentUsername;
+                document.getElementById('set-nickname').innerText = nickname || '尚未設定';
+            }
+        }
+
+        function checkAdminFeatures() {
+            const isAdmin = currentUsername === 'hsliang-admin';
+            document.getElementById('admin-badge-1').classList.toggle('hidden', !isAdmin);
+            document.getElementById('admin-announce-box').classList.toggle('hidden', !isAdmin);
+            document.getElementById('admin-folder-box').classList.toggle('hidden', !isAdmin);
+            document.getElementById('admin-faq-management-section').classList.toggle('hidden', !isAdmin);
+            document.getElementById('th-action-header').classList.toggle('hidden', !isAdmin);
+        }
+
+        function switchTab(tabName) {
+            ['home', 'grades', 'settings', 'faq'].forEach(t => {
+                document.getElementById('tab-' + t).classList.toggle('hidden', t !== tabName);
+            });
+        }
+
+        // 1. 即時訊息公告 (雲端同步)
+        async function postAnnouncement() {
+            const text = document.getElementById('announce-input').value.trim();
+            if (!text) return;
+            await supabaseClient.from('announcements').insert([{ text, author: currentUsername }]);
+            document.getElementById('announce-input').value = '';
+            loadAnnouncements();
+        }
+
+        async function loadAnnouncements() {
+            const { data: list } = await supabaseClient.from('announcements').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false });
+            const container = document.getElementById('announce-list');
+            if (!list || list.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">目前尚無即時訊息</p>';
+                return;
+            }
+            const isAdmin = currentUsername === 'hsliang-admin';
+            container.innerHTML = list.map(item => `
+                <div class="bg-white p-2.5 border ${item.pinned ? 'border-amber-400 bg-amber-50/30' : 'border-gray-200'} rounded-lg text-xs flex justify-between items-start">
+                    <div>
+                        <span class="font-medium">${item.text}</span>
+                        <p class="text-[10px] text-gray-400">${new Date(item.created_at).toLocaleTimeString()} (${item.author})</p>
+                    </div>
+                    ${isAdmin ? `<button onclick="deleteAnnouncement(${item.id})" class="text-[10px] text-red-500">刪除</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function deleteAnnouncement(id) {
+            await supabaseClient.from('announcements').delete().eq('id', id);
+            loadAnnouncements();
+        }
+
+        // 2. 講義資料 (雲端同步)
+        async function uploadHandoutRealFile() {
+            const title = document.getElementById('handout-title').value.trim();
+            const fileInput = document.getElementById('handout-file-input');
+            if (!title || fileInput.files.length === 0) return;
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                await supabaseClient.from('handouts').insert([{ title, url: e.target.result }]);
+                document.getElementById('handout-title').value = '';
+                fileInput.value = '';
+                renderFolderView();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function renderFolderView() {
+            const { data: files } = await supabaseClient.from('handouts').select('*').order('created_at', { ascending: false });
+            const container = document.getElementById('folder-view-container');
+            if (!files || files.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">目前尚無講義</p>';
+                return;
+            }
+            const isAdmin = currentUsername === 'hsliang-admin';
+            container.innerHTML = files.map(file => `
+                <div class="bg-white p-2.5 border border-gray-200 rounded-lg text-xs flex justify-between items-center">
+                    <span class="font-medium truncate">📄 ${file.title}</span>
+                    <div class="flex gap-1">
+                        <a href="${file.url}" target="_blank" class="bg-gray-100 hover:bg-black hover:text-white px-2.5 py-1 rounded text-[11px]">開啟</a>
+                        ${isAdmin ? `<button onclick="deleteHandout(${file.id})" class="text-[10px] text-red-500">刪除</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function deleteHandout(id) {
+            await supabaseClient.from('handouts').delete().eq('id', id);
+            renderFolderView();
+        }
+
+        // 3. 論壇聊天 (雲端同步)
+        async function postForumMessage() {
+            const text = document.getElementById('forum-input').value.trim();
+            if (!text) return;
+            const displayName = currentUserObject?.user_metadata?.nickname || currentUsername;
+            await supabaseClient.from('forum_messages').insert([{ text, username: currentUsername, display_name: displayName }]);
+            document.getElementById('forum-input').value = '';
+            loadForumMessages();
+        }
+
+        async function loadForumMessages() {
+            const { data: list } = await supabaseClient.from('forum_messages').select('*').order('created_at', { ascending: true });
+            const container = document.getElementById('forum-list');
+            if (!list || list.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">大家一起來聊聊吧！</p>';
+                return;
+            }
+            const isAdmin = currentUsername === 'hsliang-admin';
+            container.innerHTML = list.map(item => `
+                <div class="text-xs pb-2 border-b border-gray-100 flex justify-between">
+                    <div>
+                        <span class="font-medium">${item.display_name || item.username}</span>
+                        <span class="text-[10px] text-gray-400 ml-1">(${new Date(item.created_at).toLocaleTimeString()})</span>
+                        <p class="mt-0.5">${item.text}</p>
+                    </div>
+                    ${isAdmin ? `<button onclick="deleteForumMessage(${item.id})" class="text-[10px] text-red-500">刪除</button>` : ''}
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function deleteForumMessage(id) {
+            await supabaseClient.from('forum_messages').delete().eq('id', id);
+            loadForumMessages();
+        }
+
+        // 4. 成績系統 (雲端同步)
+        async function submitGrade() {
+            const subject = document.getElementById('grade-subject').value.trim();
+            const range = document.getElementById('grade-range').value.trim();
+            const score = document.getElementById('grade-score').value.trim();
+            if (!subject || !range || !score) return;
+
+            await supabaseClient.from('grades').insert([{ username: currentUsername, subject, range, score: parseFloat(score) }]);
+            document.getElementById('grade-subject').value = '';
+            document.getElementById('grade-range').value = '';
+            document.getElementById('grade-score').value = '';
+            loadGrades();
+        }
+
+        async function loadGrades() {
+            const isAdmin = currentUsername === 'hsliang-admin';
+            let query = supabaseClient.from('grades').select('*').order('created_at', { ascending: false });
+            if (!isAdmin) query = query.eq('username', currentUsername);
+
+            const { data: list } = await query;
+            const tbody = document.getElementById('grade-table-body');
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-gray-400">尚無成績記錄</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(item => `
+                <tr class="border-b border-gray-100">
+                    <td class="p-2.5 font-mono">${item.username}</td>
+                    <td class="p-2.5 font-medium">${item.subject}</td>
+                    <td class="p-2.5 text-gray-500">${item.range}</td>
+                    <td class="p-2.5 font-bold">${item.score}</td>
+                    <td class="p-2.5 text-[10px] text-gray-400">${new Date(item.created_at).toLocaleDateString()}</td>
+                    ${isAdmin ? `<td class="p-2.5"><button onclick="deleteGrade(${item.id})" class="text-[10px] text-red-500">刪除</button></td>` : ''}
+                </tr>
+            `).join('');
+        }
+
+        async function deleteGrade(id) {
+            await supabaseClient.from('grades').delete().eq('id', id);
+            loadGrades();
+        }
+
+        // 5. 問題發問 (雲端同步)
+        async function submitFaqQuestion() {
+            const message = document.getElementById('faq-message-input').value.trim();
+            if (!message) return;
+
+            await supabaseClient.from('faq_submissions').insert([{ username: currentUsername, message }]);
+            document.getElementById('faq-message-input').value = '';
+            loadUserFaqChat();
+        }
+
+        async function loadUserFaqChat() {
+            const { data: list } = await supabaseClient.from('faq_submissions').select('*').eq('username', currentUsername).order('created_at', { ascending: true });
+            const container = document.getElementById('user-faq-chat-box');
+            if (!list || list.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-400 text-center my-auto">尚無發問紀錄！</p>';
+                return;
+            }
+
+            container.innerHTML = list.map(item => `
+                <div class="flex flex-col items-end space-y-1">
+                    <div class="bg-[#9EE862] text-gray-900 p-2.5 rounded-2xl text-xs">${item.message}</div>
+                </div>
+                ${item.reply ? `
+                    <div class="flex flex-col items-start space-y-1">
+                        <span class="text-[10px] text-gray-400">客服管理員</span>
+                        <div class="bg-white border border-gray-200 text-gray-900 p-2.5 rounded-2xl text-xs">${item.reply}</div>
+                    </div>
+                ` : ''}
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function loadAdminFaqList() {
+            const { data: list } = await supabaseClient.from('faq_submissions').select('*').order('created_at', { ascending: false });
+            if (!list) return;
+
+            const users = [...new Set(list.map(i => i.username))];
+            const userListContainer = document.getElementById('admin-faq-user-list');
+            userListContainer.innerHTML = users.map(u => `
+                <button onclick="selectAdminChatUser('${u}')" class="w-full text-left p-2.5 rounded-lg text-xs hover:bg-gray-100">${u}</button>
+            `).join('');
+        }
+
+        function selectAdminChatUser(u) {
+            selectedAdminChatUser = u;
+            document.getElementById('admin-chat-input-box').classList.remove('hidden');
+            renderAdminChat();
+        }
+
+        async function renderAdminChat() {
+            const { data: list } = await supabaseClient.from('faq_submissions').select('*').eq('username', selectedAdminChatUser).order('created_at', { ascending: true });
+            const chatMessages = document.getElementById('admin-chat-messages');
+            chatMessages.innerHTML = list.map(item => `
+                <div class="text-xs mb-2">
+                    <p class="font-semibold">${item.username}: ${item.message}</p>
+                    ${item.reply ? `<p class="text-green-600 pl-2">➔ 管理員回覆: ${item.reply}</p>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function sendAdminReplyToSelectedUser() {
+            const reply = document.getElementById('admin-reply-input').value.trim();
+            if (!reply || !selectedAdminChatUser) return;
+
+            const { data: list } = await supabaseClient.from('faq_submissions').select('id').eq('username', selectedAdminChatUser).order('created_at', { ascending: false }).limit(1);
+            if (list.length > 0) {
+                await supabaseClient.from('faq_submissions').update({ reply }).eq('id', list[0].id);
+                document.getElementById('admin-reply-input').value = '';
+                renderAdminChat();
+            }
+        }
+
+        async function updateNickname() {
+            const nickname = document.getElementById('input-nickname').value.trim();
+            if (!nickname) return;
+            await supabaseClient.auth.updateUser({ data: { nickname } });
+            updateUserDisplayInfo();
+        }
+
+        async function updatePassword() {
+            const password = document.getElementById('set-new-password').value;
+            if (password.length >= 6) {
+                await supabaseClient.auth.updateUser({ password });
+                alert('密碼修改成功');
+            }
+        }
+
+        function backToDashboard() {
+            showDashboard(currentUsername);
+        }
+
+        async function logout() {
+            await supabaseClient.auth.signOut();
+            location.reload();
+        }
     </script>
 </body>
 </html>
