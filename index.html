@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Windows 11 風格資料夾卡片特效 */
+        /* Windows 11 風格卡片 */
         .win11-folder {
             background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
             border: 1px solid #d0e1f9;
@@ -147,39 +147,23 @@
                         </div>
                     </div>
 
-                    <!-- 2. 數學講義檔案 (Windows 11 風格) -->
+                    <!-- 2. 數學講義檔案 (直接同步 OneDrive 資料夾) -->
                     <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col justify-between h-[380px] sm:h-[420px]">
-                        <div>
+                        <div class="h-full flex flex-col">
                             <div class="flex justify-between items-center mb-3">
                                 <h3 class="text-sm font-medium uppercase tracking-wider text-gray-800 flex items-center gap-1.5">
-                                    <span>2. 數學講義檔案</span>
+                                    <span>2. 數學講義檔案 (OneDrive 同步)</span>
                                 </h3>
-                                <button id="back-folder-btn" onclick="navigateParentFolder()" class="hidden text-[11px] bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-md shadow-sm transition">⬅ 返回上一層</button>
+                                <a href="https://o365oid-my.sharepoint.com/:f:/g/personal/ssh107182_ms_edu_tw/IgAhKLfnpPkcSJezbimkqwhHASBjF1WifyA4Z2pyq9PESq4?e=EZY6aM" target="_blank" class="text-[10px] bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 transition">在新分頁開啟 🔗</a>
                             </div>
 
-                            <!-- Win11 風格路徑導航條 -->
-                            <div class="bg-white border border-gray-200 rounded-md px-2.5 py-1 text-[11px] text-gray-500 mb-3 flex items-center gap-1 overflow-x-auto">
-                                <span class="text-blue-600 font-medium">💻 此電腦</span>
-                                <span>&gt;</span>
-                                <span id="folder-path-title" class="text-gray-800 font-semibold truncate">根目錄</span>
-                            </div>
-
-                            <!-- 管理員新增功能 -->
-                            <div id="admin-folder-box" class="hidden mb-3 space-y-2 border-b border-gray-200 pb-3">
-                                <div class="flex gap-1 items-center">
-                                    <input type="text" id="new-folder-name" class="flex-1 p-1.5 bg-white border border-gray-200 rounded text-xs focus:outline-none focus:border-black" placeholder="新資料夾名稱">
-                                    <button onclick="createNewFolder()" class="bg-gray-800 text-white text-xs px-2.5 py-1 rounded shrink-0 hover:bg-black">+ 資料夾</button>
-                                </div>
-                                <div class="flex gap-1 items-center">
-                                    <input type="text" id="handout-title" class="w-24 sm:w-28 p-1.5 bg-white border border-gray-200 rounded text-xs focus:outline-none focus:border-black" placeholder="檔案名稱">
-                                    <input type="file" id="handout-file-input" class="w-full text-[10px] text-gray-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-gray-200 file:text-gray-700">
-                                    <button onclick="uploadHandoutRealFile()" class="bg-black text-white text-xs px-2.5 py-1 rounded shrink-0">上傳</button>
-                                </div>
-                            </div>
-
-                            <!-- 資料夾與檔案列表區 -->
-                            <div id="folder-view-container" class="space-y-2 overflow-y-auto h-[190px] sm:h-[220px] pr-1">
-                                <p class="text-xs text-gray-400 text-center mt-12">尚無資料</p>
+                            <!-- OneDrive 雲端資料夾嵌入視窗 -->
+                            <div class="flex-1 bg-white border border-gray-200 rounded-lg overflow-hidden shadow-inner">
+                                <iframe 
+                                    src="https://o365oid-my.sharepoint.com/:f:/g/personal/ssh107182_ms_edu_tw/IgAhKLfnpPkcSJezbimkqwhHASBjF1WifyA4Z2pyq9PESq4?e=EZY6aM" 
+                                    class="w-full h-full border-0" 
+                                    allowfullscreen>
+                                </iframe>
                             </div>
                         </div>
                     </div>
@@ -296,7 +280,6 @@
                     <h2 class="text-2xl sm:text-3xl font-light tracking-wide text-gray-900">問題與回報發問</h2>
                 </div>
 
-                <!-- 一般用戶一對一對話串 (LINE 風格) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col items-center justify-center text-center h-[380px] sm:h-[440px]">
                         <div class="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl font-bold mb-3 shadow-sm">L</div>
@@ -322,7 +305,7 @@
                     </div>
                 </div>
 
-                <!-- 管理員發問管理區：不覆蓋訊息的 LINE 聊天列表 -->
+                <!-- 管理員發問管理區 -->
                 <div id="admin-faq-management-section" class="hidden bg-gray-50 border border-gray-200 p-4 sm:p-6 rounded-xl space-y-4">
                     <div class="flex justify-between items-center border-b border-gray-200 pb-3">
                         <h3 class="text-xs sm:text-sm font-medium uppercase tracking-wider text-gray-700">【問題發問管理】管理員對話管理中心</h3>
@@ -386,10 +369,6 @@
         let sessionSeconds = 0;
         let selectedAdminChatUser = null;
         let siteConfigs = {};
-
-        // 多層級資料夾紀錄
-        let currentFolderId = null;
-        let folderBreadcrumbs = [{ id: null, name: '根目錄' }];
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('remember_username');
@@ -501,7 +480,6 @@
 
             loadSiteConfig();
             loadAnnouncements();
-            renderFolderView();
             loadForumMessages();
             loadGrades();
             loadUserFaqChat();
@@ -513,9 +491,6 @@
         function listenRealtimeUpdates() {
             supabaseClient.channel('public:announcements')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => loadAnnouncements()).subscribe();
-
-            supabaseClient.channel('public:handouts')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'handouts' }, () => renderFolderView()).subscribe();
 
             supabaseClient.channel('public:forum_messages')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'forum_messages' }, () => loadForumMessages()).subscribe();
@@ -585,7 +560,6 @@
             const isAdmin = currentUsername === 'hsliang-admin';
             document.getElementById('admin-badge-1').classList.toggle('hidden', !isAdmin);
             document.getElementById('admin-announce-box').classList.toggle('hidden', !isAdmin);
-            document.getElementById('admin-folder-box').classList.toggle('hidden', !isAdmin);
             document.getElementById('admin-faq-management-section').classList.toggle('hidden', !isAdmin);
             document.getElementById('th-action-header').classList.toggle('hidden', !isAdmin);
             document.getElementById('admin-settings-section').classList.toggle('hidden', !isAdmin);
@@ -630,160 +604,6 @@
         async function deleteAnnouncement(id) {
             await supabaseClient.from('announcements').delete().eq('id', id);
             loadAnnouncements();
-        }
-
-        // ================= Windows 11 風格資料夾與講義 (增強錯抓版) =================
-        async function createNewFolder() {
-            const folderInput = document.getElementById('new-folder-name');
-            const folderName = folderInput.value.trim();
-            
-            if (!folderName) {
-                alert('請輸入資料夾名稱！');
-                return;
-            }
-
-            try {
-                const parentIdValue = currentFolderId ? Number(currentFolderId) : null;
-                const { data, error } = await supabaseClient
-                    .from('handouts')
-                    .insert([{ 
-                        title: folderName, 
-                        is_folder: true, 
-                        parent_id: parentIdValue 
-                    }]);
-
-                if (error) {
-                    console.error('新增資料夾失敗：', error);
-                    alert('建立資料夾失敗！原因：\n' + error.message);
-                    return;
-                }
-
-                folderInput.value = '';
-                renderFolderView();
-            } catch (err) {
-                console.error('例外錯誤：', err);
-                alert('發生預期外錯誤：' + err.message);
-            }
-        }
-
-        async function uploadHandoutRealFile() {
-            const titleInput = document.getElementById('handout-title');
-            const fileInput = document.getElementById('handout-file-input');
-            const title = titleInput.value.trim();
-            
-            if (!title || fileInput.files.length === 0) {
-                alert('請填寫檔案名稱並選擇要上傳的檔案！');
-                return;
-            }
-
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const parentIdValue = currentFolderId ? Number(currentFolderId) : null;
-                    const { error } = await supabaseClient
-                        .from('handouts')
-                        .insert([{ 
-                            title, 
-                            url: e.target.result, 
-                            is_folder: false, 
-                            parent_id: parentIdValue 
-                        }]);
-
-                    if (error) {
-                        alert('檔案上傳失敗：' + error.message);
-                        return;
-                    }
-
-                    titleInput.value = '';
-                    fileInput.value = '';
-                    renderFolderView();
-                } catch (err) {
-                    alert('上傳發生錯誤：' + err.message);
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function enterSubFolder(folderId, folderName) {
-            currentFolderId = folderId;
-            folderBreadcrumbs.push({ id: folderId, name: folderName });
-            renderFolderView();
-        }
-
-        function navigateParentFolder() {
-            if (folderBreadcrumbs.length > 1) {
-                folderBreadcrumbs.pop();
-                currentFolderId = folderBreadcrumbs[folderBreadcrumbs.length - 1].id;
-                renderFolderView();
-            }
-        }
-
-        async function renderFolderView() {
-            try {
-                const currentBreadcrumb = folderBreadcrumbs[folderBreadcrumbs.length - 1];
-                document.getElementById('folder-path-title').innerText = currentBreadcrumb.name;
-                document.getElementById('back-folder-btn').classList.toggle('hidden', folderBreadcrumbs.length <= 1);
-
-                let query = supabaseClient.from('handouts').select('*');
-                if (currentFolderId === null) {
-                    query = query.is('parent_id', null);
-                } else {
-                    query = query.eq('parent_id', currentFolderId);
-                }
-
-                const { data: items, error } = await query.order('is_folder', { ascending: false }).order('created_at', { ascending: false });
-                
-                if (error) {
-                    console.error('讀取講義列表錯誤：', error);
-                    return;
-                }
-
-                const container = document.getElementById('folder-view-container');
-
-                if (!items || items.length === 0) {
-                    container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">此資料夾尚無講義檔案</p>';
-                    return;
-                }
-
-                const isAdmin = currentUsername === 'hsliang-admin';
-                container.innerHTML = items.map(item => {
-                    if (item.is_folder) {
-                        return `
-                            <div onclick="enterSubFolder(${item.id}, '${item.title}')" class="win11-folder p-2.5 rounded-lg text-xs flex justify-between items-center cursor-pointer">
-                                <div class="flex items-center gap-2 truncate">
-                                    <svg class="w-5 h-5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
-                                    <span class="font-medium text-gray-800 truncate">${item.title}</span>
-                                </div>
-                                <div class="flex gap-1 items-center shrink-0">
-                                    <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">開啟</span>
-                                    ${isAdmin ? `<button onclick="event.stopPropagation(); deleteHandoutItem(${item.id})" class="text-[10px] text-red-500 ml-1 hover:underline">刪除</button>` : ''}
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        return `
-                            <div class="bg-white p-2.5 border border-gray-200 rounded-lg text-xs flex justify-between items-center hover:border-gray-300 transition">
-                                <div class="flex items-center gap-2 truncate">
-                                    <svg class="w-5 h-5 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-                                    <span class="font-medium truncate text-gray-700">${item.title}</span>
-                                </div>
-                                <div class="flex gap-1 shrink-0">
-                                    <a href="${item.url}" target="_blank" class="bg-gray-100 hover:bg-black hover:text-white px-2.5 py-1 rounded text-[11px] transition">開啟</a>
-                                    ${isAdmin ? `<button onclick="deleteHandoutItem(${item.id})" class="text-[10px] text-red-500 hover:underline">刪除</button>` : ''}
-                                </div>
-                            </div>
-                        `;
-                    }
-                }).join('');
-            } catch (err) {
-                console.error('渲染資料夾視圖時發生錯誤：', err);
-            }
-        }
-
-        async function deleteHandoutItem(id) {
-            await supabaseClient.from('handouts').delete().eq('id', id);
-            renderFolderView();
         }
 
         // ================= 論壇與成績系統 =================
