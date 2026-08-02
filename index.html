@@ -18,6 +18,21 @@
             box-shadow: 0 4px 12px rgba(0, 103, 192, 0.12);
             transform: translateY(-1px);
         }
+
+        /* 現代化細滾輪樣式 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
 <body class="bg-white flex items-center justify-center min-h-screen text-gray-800 p-2 sm:p-4">
@@ -94,7 +109,7 @@
             <div class="flex items-center space-x-3">
                 <h1 class="text-lg sm:text-xl font-light tracking-wide text-gray-900">使用者面板</h1>
                 <div class="flex items-center space-x-2 text-[11px] bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full border border-gray-200">
-                    <span id="display-version-tag" class="font-medium">v.0.0.1 Beta 1</span>
+                    <span id="display-version-tag" class="font-medium">v.0.0.1 Beta 3</span>
                     <span class="text-gray-300">|</span>
                     <span id="display-status-tag" class="text-amber-600 font-light">目前網站開站中</span>
                 </div>
@@ -130,26 +145,27 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- 1. 即時發布訊息 -->
-                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col justify-between h-[380px] sm:h-[420px]">
-                        <div>
-                            <h3 class="text-sm font-medium uppercase tracking-wider text-gray-700 mb-3 flex items-center justify-between">
-                                <span>1. 即時發布訊息</span>
-                                <span id="admin-badge-1" class="hidden text-[10px] bg-black text-white px-2 py-0.5 rounded">管理員</span>
-                            </h3>
-                            <div id="admin-announce-box" class="hidden mb-3">
-                                <textarea id="announce-input" rows="3" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入要發布給大家的訊息（支援換行與排版）..."></textarea>
-                                <button onclick="postAnnouncement()" class="w-full mt-1 bg-black text-white text-xs py-1.5 rounded-lg hover:bg-gray-800 transition">發布公告</button>
-                            </div>
-                            <div id="announce-list" class="space-y-2 overflow-y-auto h-[230px] sm:h-[270px] pr-1">
-                                <p class="text-xs text-gray-400 text-center mt-12">目前尚無即時訊息</p>
-                            </div>
+                    
+                    <!-- 重點修正 1. 即時發布訊息：加上 overflow-hidden 與 flex-col，內部用 flex-1 -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col h-[380px] sm:h-[420px] overflow-hidden">
+                        <h3 class="text-sm font-medium uppercase tracking-wider text-gray-700 mb-3 flex items-center justify-between shrink-0">
+                            <span>1. 即時發布訊息</span>
+                            <span id="admin-badge-1" class="hidden text-[10px] bg-black text-white px-2 py-0.5 rounded">管理員</span>
+                        </h3>
+                        <!-- shrink-0 確保發布框不會被擠扁 -->
+                        <div id="admin-announce-box" class="hidden mb-3 shrink-0">
+                            <textarea id="announce-input" rows="3" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入要發布給大家的訊息（支援換行與排版）..."></textarea>
+                            <button onclick="postAnnouncement()" class="w-full mt-1 bg-black text-white text-xs py-1.5 rounded-lg hover:bg-gray-800 transition">發布公告</button>
+                        </div>
+                        <!-- flex-1 讓這個區塊自動填滿所有剩餘高度，多的就在內部滾動 -->
+                        <div id="announce-list" class="space-y-2 overflow-y-auto flex-1 pr-3 custom-scrollbar">
+                            <p class="text-xs text-gray-400 text-center mt-12">目前尚無即時訊息</p>
                         </div>
                     </div>
 
-                    <!-- 2. 數學講義檔案 (Windows 11 風格) -->
-                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col justify-between h-[380px] sm:h-[420px]">
-                        <div>
+                    <!-- 重點修正 2. 數學講義檔案 -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col h-[380px] sm:h-[420px] overflow-hidden">
+                        <div class="shrink-0">
                             <div class="flex justify-between items-center mb-3">
                                 <h3 class="text-sm font-medium uppercase tracking-wider text-gray-800 flex items-center gap-1.5">
                                     <span>2. 數學講義檔案</span>
@@ -157,14 +173,12 @@
                                 <button id="back-folder-btn" onclick="navigateParentFolder()" class="hidden text-[11px] bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-md shadow-sm transition">⬅ 返回上一層</button>
                             </div>
 
-                            <!-- Win11 風格路徑導航條 -->
                             <div class="bg-white border border-gray-200 rounded-md px-2.5 py-1 text-[11px] text-gray-500 mb-3 flex items-center gap-1 overflow-x-auto">
                                 <span class="text-blue-600 font-medium">💻 此電腦</span>
                                 <span>&gt;</span>
                                 <span id="folder-path-title" class="text-gray-800 font-semibold truncate">根目錄</span>
                             </div>
 
-                            <!-- 管理員新增功能 -->
                             <div id="admin-folder-box" class="hidden mb-3 space-y-2 border-b border-gray-200 pb-3">
                                 <div class="flex gap-1 items-center">
                                     <input type="text" id="new-folder-name" class="flex-1 p-1.5 bg-white border border-gray-200 rounded text-xs focus:outline-none focus:border-black" placeholder="新資料夾名稱">
@@ -176,27 +190,26 @@
                                     <button onclick="uploadHandoutRealFile()" class="bg-black text-white text-xs px-2.5 py-1 rounded shrink-0">上傳</button>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- 資料夾與檔案列表區 -->
-                            <div id="folder-view-container" class="space-y-2 overflow-y-auto h-[190px] sm:h-[220px] pr-1">
-                                <p class="text-xs text-gray-400 text-center mt-12">尚無資料</p>
-                            </div>
+                        <!-- 檔案區自動延伸 -->
+                        <div id="folder-view-container" class="space-y-2 overflow-y-auto flex-1 pr-2 custom-scrollbar">
+                            <p class="text-xs text-gray-400 text-center mt-12">尚無資料</p>
                         </div>
                     </div>
 
-                    <!-- 3. 發問論壇聊天 -->
-                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col justify-between h-[380px] sm:h-[420px]">
-                        <div class="flex flex-col h-full">
-                            <h3 class="text-sm font-medium uppercase tracking-wider text-gray-700 mb-3">3. 發問論壇聊天</h3>
-                            <div id="forum-list" class="space-y-2 overflow-y-auto flex-1 pr-1 bg-white p-3 border border-gray-200 rounded-lg mb-2">
-                                <p class="text-xs text-gray-400 text-center mt-12">大家一起來聊聊吧！</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <input type="text" id="forum-input" class="flex-1 p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black" placeholder="輸入聊天內容...">
-                                <button onclick="postForumMessage()" class="bg-black text-white text-xs px-3 py-2 rounded-lg hover:bg-gray-800 transition">發送</button>
-                            </div>
+                    <!-- 重點修正 3. 發問論壇聊天 -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col h-[380px] sm:h-[420px] overflow-hidden">
+                        <h3 class="text-sm font-medium uppercase tracking-wider text-gray-700 mb-3 shrink-0">3. 發問論壇聊天</h3>
+                        <div id="forum-list" class="space-y-2 overflow-y-auto flex-1 pr-2 custom-scrollbar bg-white p-3 border border-gray-200 rounded-lg mb-2">
+                            <p class="text-xs text-gray-400 text-center mt-12">大家一起來聊聊吧！</p>
+                        </div>
+                        <div class="flex gap-2 shrink-0">
+                            <input type="text" id="forum-input" class="flex-1 p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black" placeholder="輸入聊天內容...">
+                            <button onclick="postForumMessage()" class="bg-black text-white text-xs px-3 py-2 rounded-lg hover:bg-gray-800 transition">發送</button>
                         </div>
                     </div>
+
                 </div>
             </div>
 
@@ -218,7 +231,7 @@
                         <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold">成績記錄與統計</p>
                         <button onclick="loadGrades()" class="text-[11px] text-gray-500 hover:text-black underline">重新整理</button>
                     </div>
-                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden max-h-56 overflow-y-auto">
+                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden max-h-56 overflow-y-auto custom-scrollbar">
                         <table class="w-full text-left text-xs">
                             <thead class="bg-gray-100 text-gray-600 border-b border-gray-200">
                                 <tr>
@@ -248,7 +261,6 @@
                     <p class="text-sm text-gray-800">目前暱稱：<span id="set-nickname" class="text-black font-medium">尚未設定</span></p>
                 </div>
 
-                <!-- 管理員專屬設定區 -->
                 <div id="admin-settings-section" class="hidden bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-4">
                     <p class="text-xs font-semibold text-gray-700 uppercase tracking-wider">👑 管理員系統控制台</p>
                     <div class="space-y-3">
@@ -296,7 +308,6 @@
                     <h2 class="text-2xl sm:text-3xl font-light tracking-wide text-gray-900">問題與回報發問</h2>
                 </div>
 
-                <!-- 一般用戶一對一對話串 (LINE 風格) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 sm:p-6 flex flex-col items-center justify-center text-center h-[380px] sm:h-[440px]">
                         <div class="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl font-bold mb-3 shadow-sm">L</div>
@@ -311,7 +322,7 @@
                             <h3 class="text-xs font-medium uppercase tracking-wider text-gray-700">我的發問與客服回覆紀錄</h3>
                         </div>
 
-                        <div id="user-faq-chat-box" class="flex-1 bg-[#8cabd9]/20 border border-gray-200 rounded-lg p-3 overflow-y-auto space-y-3 mb-2 flex flex-col">
+                        <div id="user-faq-chat-box" class="flex-1 bg-[#8cabd9]/20 border border-gray-200 rounded-lg p-3 overflow-y-auto custom-scrollbar space-y-3 mb-2 flex flex-col">
                             <p class="text-xs text-gray-400 text-center my-auto">尚無發問紀錄！</p>
                         </div>
 
@@ -322,14 +333,13 @@
                     </div>
                 </div>
 
-                <!-- 管理員發問管理區：不覆蓋訊息的 LINE 聊天列表 -->
                 <div id="admin-faq-management-section" class="hidden bg-gray-50 border border-gray-200 p-4 sm:p-6 rounded-xl space-y-4">
                     <div class="flex justify-between items-center border-b border-gray-200 pb-3">
                         <h3 class="text-xs sm:text-sm font-medium uppercase tracking-wider text-gray-700">【問題發問管理】管理員對話管理中心</h3>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 h-[480px] relative overflow-hidden">
-                        <div id="admin-faq-user-panel" class="bg-white border border-gray-200 rounded-lg overflow-y-auto p-2 space-y-1 h-full w-full md:w-auto">
+                        <div id="admin-faq-user-panel" class="bg-white border border-gray-200 rounded-lg overflow-y-auto custom-scrollbar p-2 space-y-1 h-full w-full md:w-auto">
                             <p class="text-xs font-semibold text-gray-400 p-2 border-b border-gray-100">選擇對話用戶：</p>
                             <div id="admin-faq-user-list" class="space-y-1"></div>
                         </div>
@@ -342,7 +352,7 @@
                                 <span id="admin-chat-title" class="text-xs font-semibold text-gray-800 ml-auto md:ml-0">尚未選擇用戶</span>
                             </div>
 
-                            <div id="admin-chat-messages" class="flex-1 overflow-y-auto space-y-3 p-3 bg-[#8cabd9]/20 rounded-lg mb-2 flex flex-col">
+                            <div id="admin-chat-messages" class="flex-1 overflow-y-auto custom-scrollbar space-y-3 p-3 bg-[#8cabd9]/20 rounded-lg mb-2 flex flex-col">
                                 <p class="text-xs text-gray-400 text-center my-auto">請從左側選擇用戶開始對話</p>
                             </div>
 
@@ -370,7 +380,7 @@
         </div>
 
         <div id="footer-version-text" class="text-center text-xs text-gray-300 font-light shrink-0 pt-2">
-            My Website System - <span id="footer-v-tag">v.0.0.1 Beta 1</span>
+            My Website System - <span id="footer-v-tag">v.0.0.1 Beta 3</span>
         </div>
     </div>
 
@@ -619,7 +629,6 @@
             container.innerHTML = list.map(item => `
                 <div class="bg-white p-2.5 border border-gray-200 rounded-lg text-xs flex justify-between items-start">
                     <div class="w-full pr-2">
-                        <!-- 使用者排版與換行樣式維持 -->
                         <div class="font-medium text-gray-800 whitespace-pre-wrap break-words">${item.text}</div>
                         <p class="text-[10px] text-gray-400 mt-1">${new Date(item.created_at).toLocaleTimeString()} (${item.author})</p>
                     </div>
@@ -633,36 +642,23 @@
             loadAnnouncements();
         }
 
-        // ================= Windows 11 風格資料夾與講義 =================
         async function createNewFolder() {
             const folderInput = document.getElementById('new-folder-name');
             const folderName = folderInput.value.trim();
             
-            if (!folderName) {
-                alert('請輸入資料夾名稱！');
-                return;
-            }
+            if (!folderName) { alert('請輸入資料夾名稱！'); return; }
 
             try {
                 const parentIdValue = currentFolderId ? Number(currentFolderId) : null;
                 const { error } = await supabaseClient
                     .from('handouts')
-                    .insert([{ 
-                        title: folderName, 
-                        is_folder: true, 
-                        parent_id: parentIdValue 
-                    }]);
+                    .insert([{ title: folderName, is_folder: true, parent_id: parentIdValue }]);
 
-                if (error) {
-                    alert('建立資料夾失敗！原因：\n' + error.message);
-                    return;
-                }
+                if (error) { alert('建立資料夾失敗！原因：\n' + error.message); return; }
 
                 folderInput.value = '';
                 renderFolderView();
-            } catch (err) {
-                alert('發生預期外錯誤：' + err.message);
-            }
+            } catch (err) { alert('發生預期外錯誤：' + err.message); }
         }
 
         async function uploadHandoutRealFile() {
@@ -671,8 +667,7 @@
             const title = titleInput.value.trim();
             
             if (!title || fileInput.files.length === 0) {
-                alert('請填寫檔案名稱並選擇要上傳的檔案！');
-                return;
+                alert('請填寫檔案名稱並選擇要上傳的檔案！'); return;
             }
 
             const file = fileInput.files[0];
@@ -682,24 +677,13 @@
                     const parentIdValue = currentFolderId ? Number(currentFolderId) : null;
                     const { error } = await supabaseClient
                         .from('handouts')
-                        .insert([{ 
-                            title, 
-                            url: e.target.result, 
-                            is_folder: false, 
-                            parent_id: parentIdValue 
-                        }]);
+                        .insert([{ title, url: e.target.result, is_folder: false, parent_id: parentIdValue }]);
 
-                    if (error) {
-                        alert('檔案上傳失敗：' + error.message);
-                        return;
-                    }
+                    if (error) { alert('檔案上傳失敗：' + error.message); return; }
 
-                    titleInput.value = '';
-                    fileInput.value = '';
+                    titleInput.value = ''; fileInput.value = '';
                     renderFolderView();
-                } catch (err) {
-                    alert('上傳發生錯誤：' + err.message);
-                }
+                } catch (err) { alert('上傳發生錯誤：' + err.message); }
             };
             reader.readAsDataURL(file);
         }
@@ -725,18 +709,13 @@
                 document.getElementById('back-folder-btn').classList.toggle('hidden', folderBreadcrumbs.length <= 1);
 
                 let query = supabaseClient.from('handouts').select('*');
-                if (currentFolderId === null) {
-                    query = query.is('parent_id', null);
-                } else {
-                    query = query.eq('parent_id', currentFolderId);
-                }
+                if (currentFolderId === null) query = query.is('parent_id', null);
+                else query = query.eq('parent_id', currentFolderId);
 
                 const { data: items, error } = await query.order('is_folder', { ascending: false }).order('created_at', { ascending: false });
-                
                 if (error) return;
 
                 const container = document.getElementById('folder-view-container');
-
                 if (!items || items.length === 0) {
                     container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">此資料夾尚無講義檔案</p>';
                     return;
@@ -758,7 +737,6 @@
                             </div>
                         `;
                     } else {
-                        // 確保強制新分頁且絕對保證打開（使用 window.open 配合防阻擋提示，並提供標準 target="_blank" 雙保險）
                         return `
                             <div class="bg-white p-2.5 border border-gray-200 rounded-lg text-xs flex justify-between items-center hover:border-gray-300 transition">
                                 <div class="flex items-center gap-2 truncate">
@@ -773,57 +751,36 @@
                         `;
                     }
                 }).join('');
-            } catch (err) {
-                console.error(err);
-            }
+            } catch (err) { console.error(err); }
         }
 
-        // 保證新分頁開啟檔案的強健函數（透過 window.open 與隱藏式隱式連結雙重確保不被攔截）
         function openHandoutSafely(url) {
             try {
                 const newWindow = window.open(url, '_blank');
                 if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-                    // 若瀏覽器彈出視窗遭到嚴格攔截，使用強制轉跳或點擊建立方式
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.target = '_blank';
-                    a.rel = 'noopener noreferrer';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
+                    const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
                 }
             } catch (e) {
-                const a = document.createElement('a');
-                a.href = url;
-                a.target = '_blank';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                const a = document.createElement('a'); a.href = url; a.target = '_blank';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
             }
         }
 
-        async function deleteHandoutItem(id) {
-            await supabaseClient.from('handouts').delete().eq('id', id);
-            renderFolderView();
-        }
+        async function deleteHandoutItem(id) { await supabaseClient.from('handouts').delete().eq('id', id); renderFolderView(); }
 
-        // ================= 論壇與成績系統 =================
         async function postForumMessage() {
             const text = document.getElementById('forum-input').value.trim();
             if (!text) return;
             const displayName = currentUserObject?.user_metadata?.nickname || currentUsername;
             await supabaseClient.from('forum_messages').insert([{ text, username: currentUsername, display_name: displayName }]);
-            document.getElementById('forum-input').value = '';
-            loadForumMessages();
+            document.getElementById('forum-input').value = ''; loadForumMessages();
         }
 
         async function loadForumMessages() {
             const { data: list } = await supabaseClient.from('forum_messages').select('*').order('created_at', { ascending: true });
             const container = document.getElementById('forum-list');
-            if (!list || list.length === 0) {
-                container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">大家一起來聊聊吧！</p>';
-                return;
-            }
+            if (!list || list.length === 0) { container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">大家一起來聊聊吧！</p>'; return; }
             const isAdmin = currentUsername === 'hsliang-admin';
             container.innerHTML = list.map(item => `
                 <div class="text-xs pb-2 border-b border-gray-100 flex justify-between">
@@ -838,21 +795,15 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        async function deleteForumMessage(id) {
-            await supabaseClient.from('forum_messages').delete().eq('id', id);
-            loadForumMessages();
-        }
+        async function deleteForumMessage(id) { await supabaseClient.from('forum_messages').delete().eq('id', id); loadForumMessages(); }
 
         async function submitGrade() {
             const subject = document.getElementById('grade-subject').value.trim();
             const range = document.getElementById('grade-range').value.trim();
             const score = document.getElementById('grade-score').value.trim();
             if (!subject || !range || !score) return;
-
             await supabaseClient.from('grades').insert([{ username: currentUsername, subject, range, score: parseFloat(score) }]);
-            document.getElementById('grade-subject').value = '';
-            document.getElementById('grade-range').value = '';
-            document.getElementById('grade-score').value = '';
+            document.getElementById('grade-subject').value = ''; document.getElementById('grade-range').value = ''; document.getElementById('grade-score').value = '';
             loadGrades();
         }
 
@@ -860,73 +811,40 @@
             const isAdmin = currentUsername === 'hsliang-admin';
             let query = supabaseClient.from('grades').select('*').order('created_at', { ascending: false });
             if (!isAdmin) query = query.eq('username', currentUsername);
-
             const { data: list } = await query;
             const tbody = document.getElementById('grade-table-body');
-            if (!list || list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-gray-400">尚無成績記錄</td></tr>`;
-                return;
-            }
-
+            if (!list || list.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-gray-400">尚無成績記錄</td></tr>`; return; }
             tbody.innerHTML = list.map(item => `
                 <tr class="border-b border-gray-100">
-                    <td class="p-2.5 font-mono">${item.username}</td>
-                    <td class="p-2.5 font-medium">${item.subject}</td>
-                    <td class="p-2.5 text-gray-500">${item.range}</td>
-                    <td class="p-2.5 font-bold">${item.score}</td>
+                    <td class="p-2.5 font-mono">${item.username}</td><td class="p-2.5 font-medium">${item.subject}</td>
+                    <td class="p-2.5 text-gray-500">${item.range}</td><td class="p-2.5 font-bold">${item.score}</td>
                     <td class="p-2.5 text-[10px] text-gray-400">${new Date(item.created_at).toLocaleDateString()}</td>
                     ${isAdmin ? `<td class="p-2.5"><button onclick="deleteGrade(${item.id})" class="text-[10px] text-red-500">刪除</button></td>` : ''}
                 </tr>
             `).join('');
         }
 
-        async function deleteGrade(id) {
-            await supabaseClient.from('grades').delete().eq('id', id);
-            loadGrades();
-        }
+        async function deleteGrade(id) { await supabaseClient.from('grades').delete().eq('id', id); loadGrades(); }
 
-        // ================= 一對一 LINE 風格發問與對話串 =================
         async function submitFaqQuestion() {
             const message = document.getElementById('faq-message-input').value.trim();
             if (!message) return;
-
             const { error } = await supabaseClient.from('faq_submissions').insert([{ username: currentUsername, message }]);
             if (error) { alert('訊息傳送失敗：' + error.message); return; }
-
-            document.getElementById('faq-message-input').value = '';
-            loadUserFaqChat();
+            document.getElementById('faq-message-input').value = ''; loadUserFaqChat();
         }
 
         async function loadUserFaqChat() {
             const { data: list } = await supabaseClient.from('faq_submissions').select('*').eq('username', currentUsername).order('created_at', { ascending: true });
             const container = document.getElementById('user-faq-chat-box');
-            if (!list || list.length === 0) {
-                container.innerHTML = '<p class="text-xs text-gray-400 text-center my-auto">尚無發問紀錄！</p>';
-                return;
-            }
-
+            if (!list || list.length === 0) { container.innerHTML = '<p class="text-xs text-gray-400 text-center my-auto">尚無發問紀錄！</p>'; return; }
             container.innerHTML = list.map(item => {
                 let html = '';
                 if (item.message) {
-                    html += `
-                        <div class="flex flex-col items-end space-y-1">
-                            <div class="bg-white text-gray-800 p-2.5 rounded-2xl rounded-tr-none text-xs shadow-sm max-w-[80%] break-words">
-                                ${item.message}
-                            </div>
-                            <span class="text-[9px] text-gray-500 mr-1">${new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        </div>
-                    `;
+                    html += `<div class="flex flex-col items-end space-y-1"><div class="bg-white text-gray-800 p-2.5 rounded-2xl rounded-tr-none text-xs shadow-sm max-w-[80%] break-words">${item.message}</div><span class="text-[9px] text-gray-500 mr-1">${new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
                 }
                 if (item.reply) {
-                    html += `
-                        <div class="flex flex-col items-start space-y-1">
-                            <span class="text-[10px] text-gray-600 font-medium ml-1">客服管理員</span>
-                            <div class="bg-[#9EE862] text-gray-900 p-2.5 rounded-2xl rounded-tl-none text-xs shadow-sm max-w-[80%] break-words">
-                                ${item.reply}
-                            </div>
-                            <span class="text-[9px] text-gray-500 ml-1">${new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        </div>
-                    `;
+                    html += `<div class="flex flex-col items-start space-y-1"><span class="text-[10px] text-gray-600 font-medium ml-1">客服管理員</span><div class="bg-[#9EE862] text-gray-900 p-2.5 rounded-2xl rounded-tl-none text-xs shadow-sm max-w-[80%] break-words">${item.reply}</div><span class="text-[9px] text-gray-500 ml-1">${new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
                 }
                 return html;
             }).join('');
@@ -936,73 +854,38 @@
         async function loadAdminFaqList() {
             const { data: list } = await supabaseClient.from('faq_submissions').select('*').order('created_at', { ascending: false });
             if (!list) return;
-
             const users = [...new Set(list.map(i => i.username))];
             const userListContainer = document.getElementById('admin-faq-user-list');
-            if (users.length === 0) {
-                userListContainer.innerHTML = '<p class="text-xs text-gray-400 p-2">目前沒有用戶提問</p>';
-                return;
-            }
-
-            userListContainer.innerHTML = users.map(u => `
-                <button onclick="selectAdminChatUser('${u}')" class="w-full text-left p-3 rounded-lg text-xs hover:bg-gray-100 flex items-center justify-between border border-gray-100 transition">
-                    <span class="font-medium text-gray-800">👤 ${u}</span>
-                    <span class="text-gray-400 text-[10px]">➔</span>
-                </button>
-            `).join('');
+            if (users.length === 0) { userListContainer.innerHTML = '<p class="text-xs text-gray-400 p-2">目前沒有用戶提問</p>'; return; }
+            userListContainer.innerHTML = users.map(u => `<button onclick="selectAdminChatUser('${u}')" class="w-full text-left p-3 rounded-lg text-xs hover:bg-gray-100 flex items-center justify-between border border-gray-100 transition"><span class="font-medium text-gray-800">👤 ${u}</span><span class="text-gray-400 text-[10px]">➔</span></button>`).join('');
         }
 
         function selectAdminChatUser(u) {
             selectedAdminChatUser = u;
             document.getElementById('admin-chat-title').innerText = `與 ${u} 的對話歷史紀錄`;
             document.getElementById('admin-chat-input-box').classList.remove('hidden');
-
             const chatPanel = document.getElementById('admin-faq-chat-panel');
-            chatPanel.classList.remove('hidden');
-            chatPanel.classList.add('flex');
-
+            chatPanel.classList.remove('hidden'); chatPanel.classList.add('flex');
             renderAdminChat();
         }
 
         function closeAdminMobileChat() {
             const chatPanel = document.getElementById('admin-faq-chat-panel');
-            chatPanel.classList.add('hidden');
-            chatPanel.classList.remove('flex');
+            chatPanel.classList.add('hidden'); chatPanel.classList.remove('flex');
         }
 
         async function renderAdminChat() {
             if (!selectedAdminChatUser) return;
             const { data: list } = await supabaseClient.from('faq_submissions').select('*').eq('username', selectedAdminChatUser).order('created_at', { ascending: true });
             const chatMessages = document.getElementById('admin-chat-messages');
-
-            if (!list || list.length === 0) {
-                chatMessages.innerHTML = '<p class="text-xs text-gray-400 text-center my-auto">該用戶尚無對話</p>';
-                return;
-            }
-
+            if (!list || list.length === 0) { chatMessages.innerHTML = '<p class="text-xs text-gray-400 text-center my-auto">該用戶尚無對話</p>'; return; }
             chatMessages.innerHTML = list.map(item => {
                 let html = '';
                 if (item.message) {
-                    html += `
-                        <div class="flex flex-col items-start space-y-1">
-                            <span class="text-[10px] text-gray-600 font-medium ml-1">${item.username}</span>
-                            <div class="bg-white text-gray-800 p-2.5 rounded-2xl rounded-tl-none text-xs shadow-sm max-w-[85%] break-words">
-                                ${item.message}
-                            </div>
-                            <span class="text-[9px] text-gray-500 ml-1">${new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        </div>
-                    `;
+                    html += `<div class="flex flex-col items-start space-y-1"><span class="text-[10px] text-gray-600 font-medium ml-1">${item.username}</span><div class="bg-white text-gray-800 p-2.5 rounded-2xl rounded-tl-none text-xs shadow-sm max-w-[85%] break-words">${item.message}</div><span class="text-[9px] text-gray-500 ml-1">${new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
                 }
                 if (item.reply) {
-                    html += `
-                        <div class="flex flex-col items-end space-y-1">
-                            <span class="text-[10px] text-gray-500 mr-1">管理員回覆</span>
-                            <div class="bg-[#9EE862] text-gray-900 p-2.5 rounded-2xl rounded-tr-none text-xs shadow-sm max-w-[85%] break-words">
-                                ${item.reply}
-                            </div>
-                            <span class="text-[9px] text-gray-500 mr-1">${new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        </div>
-                    `;
+                    html += `<div class="flex flex-col items-end space-y-1"><span class="text-[10px] text-gray-500 mr-1">管理員回覆</span><div class="bg-[#9EE862] text-gray-900 p-2.5 rounded-2xl rounded-tr-none text-xs shadow-sm max-w-[85%] break-words">${item.reply}</div><span class="text-[9px] text-gray-500 mr-1">${new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
                 }
                 return html;
             }).join('');
@@ -1012,12 +895,9 @@
         async function sendAdminReplyToSelectedUser() {
             const reply = document.getElementById('admin-reply-input').value.trim();
             if (!reply || !selectedAdminChatUser) return;
-
             const { error } = await supabaseClient.from('faq_submissions').insert([{ username: selectedAdminChatUser, reply }]);
             if (error) { alert('回覆失敗：' + error.message); return; }
-
-            document.getElementById('admin-reply-input').value = '';
-            renderAdminChat();
+            document.getElementById('admin-reply-input').value = ''; renderAdminChat();
         }
 
         async function updateNickname() {
@@ -1029,10 +909,7 @@
 
         async function updatePassword() {
             const password = document.getElementById('set-new-password').value;
-            if (password.length >= 6) {
-                await supabaseClient.auth.updateUser({ password });
-                alert('密碼修改成功');
-            }
+            if (password.length >= 6) { await supabaseClient.auth.updateUser({ password }); alert('密碼修改成功'); }
         }
 
         function backToDashboard() { showDashboard(currentUsername); }
