@@ -79,7 +79,6 @@
                     <span id="display-version-tag" class="font-medium">v.0.0.1 Beta 1</span>
                     <span class="text-gray-300">|</span>
                     <span id="display-status-tag" class="text-amber-600 font-light">目前網站開站中</span>
-                    <button id="admin-edit-status-btn" onclick="openConfigEditModal()" class="hidden text-[10px] text-blue-600 hover:underline ml-1">✏️修改</button>
                 </div>
             </div>
             
@@ -89,8 +88,8 @@
                     <button onclick="switchTab('grades')" id="nav-grades" class="text-xs text-gray-500 hover:text-black transition whitespace-nowrap">成績登記</button>
                     <button onclick="switchTab('settings')" id="nav-settings" class="text-xs text-gray-500 hover:text-black transition whitespace-nowrap">設定</button>
                     <button onclick="switchTab('faq')" id="nav-faq" class="text-xs text-gray-500 hover:text-black transition whitespace-nowrap">問題發問</button>
-                    <!-- 新增幫助按鈕 -->
-                    <button onclick="openHelpModal()" class="text-xs text-blue-600 font-medium hover:text-blue-800 transition whitespace-nowrap bg-blue-50 px-2 py-1 rounded">❓ 幫助</button>
+                    <!-- 修改：幫助按鈕樣式與旁邊工具列統一 -->
+                    <button onclick="openHelpModal()" id="nav-help" class="text-xs text-gray-500 hover:text-black transition whitespace-nowrap">幫助</button>
                 </nav>
 
                 <div class="hidden sm:block h-4 w-[1px] bg-gray-200"></div>
@@ -203,10 +202,37 @@
 
             <div id="tab-settings" class="hidden space-y-6 max-w-2xl mx-auto">
                 <h2 class="text-2xl font-light tracking-wide text-gray-900 mb-6 text-center">帳戶與系統設定</h2>
+                
                 <div class="bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-2">
                     <p class="text-xs uppercase tracking-wider text-gray-400 font-medium">當前使用者資訊</p>
                     <p class="text-sm text-gray-800">登入帳號：<span id="set-username" class="font-mono text-gray-600"></span></p>
                     <p class="text-sm text-gray-800">目前暱稱：<span id="set-nickname" class="text-black font-medium">尚未設定</span></p>
+                </div>
+
+                <!-- 新增：管理員專屬設定區 -->
+                <div id="admin-settings-section" class="hidden space-y-6 border-t border-b border-amber-200 py-6 my-6 bg-amber-50/40 p-5 rounded-xl">
+                    <p class="text-xs font-semibold text-amber-800 uppercase tracking-wider">👑 管理員系統控制台</p>
+                    
+                    <div class="space-y-3">
+                        <p class="text-xs font-medium text-gray-700">1. 修改網站版本序號與顯示狀態</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] text-gray-500 mb-1">版本序號 (如 v.0.0.1 Beta 1)</label>
+                                <input type="text" id="setting-version-input" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-gray-500 mb-1">網站狀態顯示</label>
+                                <input type="text" id="setting-status-input" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black">
+                            </div>
+                        </div>
+                        <button onclick="saveAdminSiteConfig()" class="w-full bg-black text-white text-xs font-medium py-2 rounded-lg hover:bg-gray-800 transition">儲存版本與狀態</button>
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <p class="text-xs font-medium text-gray-700">2. 修改「幫助」頁面內容</p>
+                        <textarea id="setting-help-input" rows="4" class="w-full p-3 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入幫助說明文字..."></textarea>
+                        <button onclick="saveAdminHelpText()" class="w-full bg-black text-white text-xs font-medium py-2 rounded-lg hover:bg-gray-800 transition">儲存幫助說明內容</button>
+                    </div>
                 </div>
 
                 <div class="bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-3">
@@ -287,39 +313,18 @@
         </div>
     </div>
 
-    <!-- 彈窗 1：版本與狀態修改視窗 (僅管理員) -->
-    <div id="config-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl p-6 max-w-sm w-full space-y-4 shadow-xl">
-            <h3 class="text-base font-medium text-gray-900 border-b pb-2">修改系統版本與狀態 display</h3>
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">版本序號 (例: v.0.0.2)</label>
-                <input type="text" id="input-modal-version" class="w-full p-2 border border-gray-200 rounded text-xs focus:outline-none focus:border-black">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">網站顯示狀態</label>
-                <input type="text" id="input-modal-status" class="w-full p-2 border border-gray-200 rounded text-xs focus:outline-none focus:border-black">
-            </div>
-            <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeConfigModal()" class="px-3 py-1.5 border rounded text-xs text-gray-600 hover:bg-gray-50">取消</button>
-                <button onclick="saveSiteConfig()" class="px-3 py-1.5 bg-black text-white rounded text-xs hover:bg-gray-800">儲存更新</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 彈窗 2：說明幫助視窗 -->
+    <!-- 說明幫助彈窗 (純內容讀取) -->
     <div id="help-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-xl p-6 max-w-md w-full space-y-4 shadow-xl">
             <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-base font-medium text-gray-900">❓ 系統幫助與說明</h3>
+                <h3 class="text-base font-medium text-gray-900">系統幫助與說明</h3>
                 <button onclick="closeHelpModal()" class="text-gray-400 hover:text-black">✕</button>
             </div>
             
-            <div id="help-display-box" class="text-xs text-gray-600 leading-relaxed min-h-[100px] whitespace-pre-wrap"></div>
+            <div id="help-display-box" class="text-xs text-gray-600 leading-relaxed min-h-[120px] whitespace-pre-wrap"></div>
             
-            <div id="admin-help-edit-box" class="hidden pt-2 border-t space-y-2">
-                <p class="text-[10px] font-semibold text-blue-600 uppercase">【管理員編輯區域】</p>
-                <textarea id="help-edit-input" rows="4" class="w-full p-2 border border-gray-200 rounded text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入幫助說明文字..."></textarea>
-                <button onclick="saveHelpText()" class="w-full bg-black text-white text-xs py-1.5 rounded hover:bg-gray-800">更新幫助內容</button>
+            <div class="pt-2 text-right">
+                <button onclick="closeHelpModal()" class="px-4 py-1.5 bg-black text-white rounded-lg text-xs hover:bg-gray-800 transition">關閉</button>
             </div>
         </div>
     </div>
@@ -458,7 +463,7 @@
                 .subscribe();
         }
 
-        // 新增功能 1：讀取與更新網站設定（版本號與狀態）
+        // 讀取網站設定
         async function loadSiteConfig() {
             const { data } = await supabaseClient.from('site_config').select('*');
             if (!data) return;
@@ -470,53 +475,53 @@
             if (siteConfigs['version_tag']) {
                 document.getElementById('display-version-tag').innerText = siteConfigs['version_tag'];
                 document.getElementById('footer-v-tag').innerText = siteConfigs['version_tag'];
+                if (document.getElementById('setting-version-input')) {
+                    document.getElementById('setting-version-input').value = siteConfigs['version_tag'];
+                }
             }
             if (siteConfigs['status_tag']) {
                 document.getElementById('display-status-tag').innerText = siteConfigs['status_tag'];
+                if (document.getElementById('setting-status-input')) {
+                    document.getElementById('setting-status-input').value = siteConfigs['status_tag'];
+                }
             }
             if (siteConfigs['help_text']) {
                 document.getElementById('help-display-box').innerText = siteConfigs['help_text'];
-                document.getElementById('help-edit-input').value = siteConfigs['help_text'];
+                if (document.getElementById('setting-help-input')) {
+                    document.getElementById('setting-help-input').value = siteConfigs['help_text'];
+                }
             }
         }
 
-        function openConfigEditModal() {
-            document.getElementById('input-modal-version').value = siteConfigs['version_tag'] || '';
-            document.getElementById('input-modal-status').value = siteConfigs['status_tag'] || '';
-            document.getElementById('config-modal').classList.remove('hidden');
-        }
-
-        function closeConfigModal() {
-            document.getElementById('config-modal').classList.add('hidden');
-        }
-
-        async function saveSiteConfig() {
-            const vVal = document.getElementById('input-modal-version').value.trim();
-            const sVal = document.getElementById('input-modal-status').value.trim();
+        // 管理員於「設定區」儲存版本與狀態
+        async function saveAdminSiteConfig() {
+            const vVal = document.getElementById('setting-version-input').value.trim();
+            const sVal = document.getElementById('setting-status-input').value.trim();
 
             if (vVal) await supabaseClient.from('site_config').upsert({ key: 'version_tag', value: vVal });
             if (sVal) await supabaseClient.from('site_config').upsert({ key: 'status_tag', value: sVal });
 
-            closeConfigModal();
+            alert('版本與狀態更新成功！');
             loadSiteConfig();
         }
 
-        // 新增功能 2：幫助功能彈窗與管理員編輯
+        // 管理員於「設定區」儲存幫助說明
+        async function saveAdminHelpText() {
+            const helpVal = document.getElementById('setting-help-input').value.trim();
+            if (helpVal) {
+                await supabaseClient.from('site_config').upsert({ key: 'help_text', value: helpVal });
+                alert('幫助內容已成功更新！');
+                loadSiteConfig();
+            }
+        }
+
+        // 幫助彈窗開啟與關閉
         function openHelpModal() {
             document.getElementById('help-modal').classList.remove('hidden');
         }
 
         function closeHelpModal() {
             document.getElementById('help-modal').classList.add('hidden');
-        }
-
-        async function saveHelpText() {
-            const helpVal = document.getElementById('help-edit-input').value.trim();
-            if (helpVal) {
-                await supabaseClient.from('site_config').upsert({ key: 'help_text', value: helpVal });
-                alert('幫助內容已成功更新！');
-                loadSiteConfig();
-            }
         }
 
         function startSessionTimer() {
@@ -546,13 +551,21 @@
             document.getElementById('admin-folder-box').classList.toggle('hidden', !isAdmin);
             document.getElementById('admin-faq-management-section').classList.toggle('hidden', !isAdmin);
             document.getElementById('th-action-header').classList.toggle('hidden', !isAdmin);
-            document.getElementById('admin-edit-status-btn').classList.toggle('hidden', !isAdmin);
-            document.getElementById('admin-help-edit-box').classList.toggle('hidden', !isAdmin);
+            document.getElementById('admin-settings-section').classList.toggle('hidden', !isAdmin);
         }
 
         function switchTab(tabName) {
             ['home', 'grades', 'settings', 'faq'].forEach(t => {
-                document.getElementById('tab-' + t).classList.toggle('hidden', t !== tabName);
+                const el = document.getElementById('tab-' + t);
+                const navBtn = document.getElementById('nav-' + t);
+                if (el) el.classList.toggle('hidden', t !== tabName);
+                if (navBtn) {
+                    if (t === tabName) {
+                        navBtn.className = "text-xs text-gray-900 font-medium hover:text-black transition whitespace-nowrap";
+                    } else {
+                        navBtn.className = "text-xs text-gray-500 hover:text-black transition whitespace-nowrap";
+                    }
+                }
             });
         }
 
