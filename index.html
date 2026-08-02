@@ -332,7 +332,7 @@
 
                     <div class="space-y-3 pt-2 border-t border-gray-200">
                         <p class="text-xs font-medium text-gray-600">4. 用戶列表、模擬登入、Ban 禁言管理與強制改密碼</p>
-                        <p class="text-[11px] text-gray-500">可進行模擬登入視角切換、封鎖違規用戶（Ban）或強制其下次登入更改密碼。</p>
+                        <p class="text-[11px] text-gray-500">可進行模擬登入視角切換、封鎖違規用戶（Ban）或遠端強制其下次登入更改密碼。</p>
                         <div class="bg-white border border-gray-200 rounded-lg max-h-56 overflow-y-auto p-2">
                             <table class="w-full text-left text-xs">
                                 <thead class="bg-gray-100 text-gray-600">
@@ -530,7 +530,7 @@
         });
 
         // ==========================================
-        // 密碼強度檢測邏輯 (偵測連號、重複字元、鍵盤順序)
+        // 密碼強度檢測邏輯
         // ==========================================
         function evaluatePasswordStrength(password) {
             if (!password) return { score: 0, text: '尚未輸入', color: 'bg-gray-200', valid: false };
@@ -608,7 +608,7 @@
 
             if (isSignUp) {
                 const { error } = await supabaseClient.auth.signUp({ 
-                    email, password, options: { data: { must_change_password: true, nickname: '', is_banned: false } }
+                    email, password, options: { data: { must_change_password: true, nickname: '' } }
                 });
                 if (error) msgEl.innerText = '註冊失敗: ' + error.message;
                 else { alert('註冊成功！預設密碼為 00000000，請重新登入。'); isSignUp = false; toggleMode(); }
@@ -620,10 +620,21 @@
                     currentUsername = userInput;
                     currentUserObject = data.user;
                     
-                    // 檢查是否被 Ban（停權）
-                    if (data.user.user_metadata?.is_banned === true) {
+                    // 1. 檢查是否被 Ban（停權）
+                    const { data: banData } = await supabaseClient.from('site_config').select('value').eq('key', `banned_user_${userInput}`).single();
+                    if (banData && JSON.parse(banData.value) === true) {
                         await supabaseClient.auth.signOut();
                         msgEl.innerText = '您的帳號已被管理員停權（Ban），無法登入。';
+                        return;
+                    }
+
+                    // 2. 檢查是否被管理員遠端強制要求改密碼
+                    const { data: pwData } = await supabaseClient.from('site_config').select('value').eq('key', `force_pw_${userInput}`).single();
+                    if (pwData && pwData.value === 'true') {
+                        // 清除旗標並引導至修改密碼畫面
+                        await supabaseClient.from('site_config').delete().eq('key', `force_pw_${userInput}`);
+                        document.getElementById('auth-card').classList.add('hidden');
+                        document.getElementById('change-password-card').classList.remove('hidden');
                         return;
                     }
 
@@ -758,13 +769,12 @@
             if (gradesList) gradesList.forEach(i => allUsers.push(i.username));
             if (forumList) forumList.forEach(i => allUsers.push(i.username));
             
-            const uniqueUsers = [...new Set(allUsers)].filter(u => u !== 'hsliang-admin');
-            const tbody = document.getElementById('admin-impersonate-user-list');
-
+            let uniqueUsers = [...new Set(allUsers)].filter(u => u !== 'hsliang-admin');
             if (uniqueUsers.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="2" class="p-2 text-center text-gray-400">目前尚無其他註冊用戶</td></tr>`;
-                return;
+                uniqueUsers = ['test_user'];
             }
+
+            const tbody = document.getElementById('admin-impersonate-user-list');
 
             tbody.innerHTML = uniqueUsers.map(u => `
                 <tr class="border-b border-gray-100 hover:bg-gray-50">
@@ -780,16 +790,27 @@
 
         // 管理員：對特定使用者進行 Ban / 解封
         async function toggleUserBan(targetUsername) {
-            const targetEmail = targetUsername + '@mathlearn.com';
-            // 由於前端無法直接透過 email 查詢 user uid，我們透過登入或後台簡易標記，或直接更新該使用者在資料庫的紀錄。
-            // 這裡直接提供提示。
-            alert(`已對使用者 [${targetUsername}] 執行狀態切換。建議配合資料庫權限或在 Supabase 後台進行使用者狀態控制。`);
+            const confirmAction = confirm(`確定要切換使用者 [${targetUsername}] 的停權（Ban）狀態嗎？`);
+            if (!confirmAction) return;
+
+            const configKey = `banned_user_${targetUsername}`;
+            const { data } = await supabaseClient.from('site_config').select('value').eq('key', configKey).single();
+            const currentStatus = data ? JSON.parse(data.value) : false;
+            const newStatus = !currentStatus;
+
+            await supabaseClient.from('site_config').upsert({ key: configKey, value: JSON.stringify(newStatus) });
+            alert(`已成功將使用者 [${targetUsername}] 狀態更新為：${newStatus ? '【已停權 (Banned)】' : '【已解封】'}`);
         }
 
-        // 管理員：強制指定使用者下次必須更改密碼
+        // 管理員：遠端強制指定使用者下次必須更改密碼
         async function forceUserPasswordChange(targetUsername) {
-            const targetEmail = targetUsername + '@mathlearn.com';
-            alert(`已發送強制修改密碼通知至使用者 [${targetUsername}]，該帳號下次登入時將被強制導向密碼更新頁面。`);
+            const confirmAction = confirm(`確定要遠端強制使用者 [${targetUsername}] 變更密碼嗎？\n該用戶下次登入時將會被強制導向密碼修改頁面。`);
+            if (!confirmAction) return;
+
+            const configKey = `force_pw_${targetUsername}`;
+            await supabaseClient.from('site_config').upsert({ key: configKey, value: 'true' });
+            
+            alert(`已成功發送遠端強制改密碼指令給 [${targetUsername}]！\n當該用戶下次登入時，系統會立即攔截並強制要求更改密碼。`);
         }
 
         function listenRealtimeUpdates() {
