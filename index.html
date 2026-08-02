@@ -96,20 +96,28 @@
     <!-- 變更密碼卡片 (強制首次登入修改預設密碼 00000000) -->
     <div id="change-password-card" class="hidden bg-white p-6 sm:p-8 border border-gray-200 rounded-xl shadow-sm w-full max-w-sm">
         <h1 class="text-2xl font-light mb-4 text-center tracking-wide text-gray-900">首次登入安全設定</h1>
-        <p class="text-xs text-gray-500 mb-6 text-center leading-relaxed">偵測到您目前使用的是預設密碼 (00000000)。為了帳戶安全，請立即變更為您的專屬密碼。</p>
+        <p class="text-xs text-gray-500 mb-4 text-center leading-relaxed">偵測到您目前使用的是預設密碼。為了帳戶安全，請設定一組高強度的專屬密碼。</p>
         
-        <div class="mb-4">
-            <label class="block text-gray-600 text-xs uppercase tracking-wider font-medium mb-2">新密碼</label>
-            <input type="password" id="new-password" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black transition" placeholder="請輸入新密碼 (至少6碼)">
+        <div class="mb-3">
+            <label class="block text-gray-600 text-xs uppercase tracking-wider font-medium mb-1.5">新密碼</label>
+            <input type="password" id="new-password" oninput="checkPasswordStrength('new-password', 'strength-bar-1', 'strength-text-1')" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black transition text-xs" placeholder="請輸入新密碼">
+            
+            <!-- 密碼強度即時指示器 -->
+            <div class="mt-2 space-y-1">
+                <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                    <div id="strength-bar-1" class="h-full bg-red-500 transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="strength-text-1" class="text-[10px] text-gray-400">強度：尚未輸入 (至少 8 碼，須含大小寫英文及數字)</p>
+            </div>
         </div>
         
-        <div class="mb-6">
-            <label class="block text-gray-600 text-xs uppercase tracking-wider font-medium mb-2">確認新密碼</label>
-            <input type="password" id="confirm-password" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black transition" placeholder="請再次輸入新密碼">
+        <div class="mb-5">
+            <label class="block text-gray-600 text-xs uppercase tracking-wider font-medium mb-1.5">確認新密碼</label>
+            <input type="password" id="confirm-password" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black transition text-xs" placeholder="請再次輸入新密碼">
         </div>
 
-        <button onclick="handleForceChangePassword()" class="w-full bg-black text-white font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 transition mb-4">確認修改並進入系統</button>
-        <p id="pw-message" class="mt-4 text-center text-xs text-red-500"></p>
+        <button onclick="handleForceChangePassword()" class="w-full bg-black text-white font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 transition mb-4 text-xs">確認修改並進入系統</button>
+        <p id="pw-message" class="mt-2 text-center text-xs text-red-500"></p>
     </div>
 
     <!-- 管理員後台 -->
@@ -322,7 +330,6 @@
                         <button onclick="saveAdminHelpText()" class="w-full bg-black text-white text-xs font-medium py-2 rounded-lg hover:bg-gray-800 transition">儲存幫助說明內容</button>
                     </div>
 
-                    <!-- 新增：模擬登入功能區塊 -->
                     <div class="space-y-3 pt-2 border-t border-gray-200">
                         <p class="text-xs font-medium text-gray-600">4. 用戶列表與模擬登入 (Impersonate)</p>
                         <p class="text-[11px] text-gray-500">點擊後可直接切換至該用戶視角（無需知道密碼），操作將會被記錄稽核。</p>
@@ -353,7 +360,16 @@
                 <div class="bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-3">
                     <p class="text-xs uppercase tracking-wider text-gray-400 font-medium">更改密碼</p>
                     <div>
-                        <input type="password" id="set-new-password" class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black transition mb-2" placeholder="請輸入新密碼 (至少6碼)">
+                        <input type="password" id="set-new-password" oninput="checkPasswordStrength('set-new-password', 'strength-bar-2', 'strength-text-2')" class="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black transition mb-2" placeholder="請輸入新密碼 (至少8碼)">
+                        
+                        <!-- 設定頁密碼強度即時指示器 -->
+                        <div class="mb-3 space-y-1">
+                            <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                                <div id="strength-bar-2" class="h-full bg-red-500 transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <p id="strength-text-2" class="text-[10px] text-gray-400">強度：尚未輸入 (至少 8 碼，須含大小寫英文及數字)</p>
+                        </div>
+
                         <button onclick="updatePassword()" class="w-full bg-black text-white text-xs font-medium py-2 px-4 rounded-lg hover:bg-gray-800 transition">確認變更密碼</button>
                     </div>
                 </div>
@@ -452,7 +468,6 @@
                 <div id="preview-modal-title" class="text-lg font-medium truncate">檔案預覽</div>
                 
                 <div class="flex items-center space-x-3">
-                    <!-- 縮放控制按鈕區 -->
                     <div class="flex items-center space-x-1 bg-gray-800 px-2 py-1 rounded text-xs">
                         <button onclick="zoomOut()" class="hover:bg-gray-700 px-2 py-0.5 rounded text-white font-bold" title="縮小">-</button>
                         <span id="zoom-level-text" class="px-2 font-mono text-gray-300">100%</span>
@@ -460,24 +475,19 @@
                         <button onclick="zoomReset()" class="hover:bg-gray-700 px-2 py-0.5 rounded text-gray-400 text-[11px]" title="還原預設">重設</button>
                     </div>
 
-                    <!-- 下載按鈕 -->
                     <button onclick="downloadCurrentFile()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-sm rounded-md transition flex items-center space-x-1 cursor-pointer">
                         <span>下載</span>
                     </button>
 
-                    <!-- 關閉按鈕 -->
                     <button onclick="closeFilePreview()" class="text-gray-300 hover:text-white text-xl px-2">✕</button>
                 </div>
             </div>
 
-            <!-- 檔案內容顯示區 (改用可上下捲動的容器) -->
+            <!-- 檔案內容顯示區 -->
             <div id="preview-scroll-container" class="flex-1 bg-gray-200 flex flex-col items-center relative overflow-y-auto p-4 space-y-4 custom-scrollbar">
-                <!-- PDF 連續頁面渲染容器 -->
                 <div id="pdf-pages-container" class="flex flex-col items-center space-y-4 w-full"></div>
-                <!-- 一般圖片顯示 -->
                 <img id="preview-img" class="transition-transform duration-150 rounded shadow hidden origin-center my-auto" alt="預覽圖片" />
                 
-                <!-- 載入中動畫 -->
                 <div id="preview-loading" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-85 z-20">
                     <span class="text-sm text-blue-600 font-medium animate-pulse">正在載入多頁講義，請稍候...</span>
                 </div>
@@ -506,7 +516,7 @@
         let currentFileUrl = '';
         let currentFileName = '';
         let currentZoom = 100;
-        let currentPdfDoc = null; // 儲存載入的 PDF 物件
+        let currentPdfDoc = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('remember_username');
@@ -518,6 +528,54 @@
             }
             checkImpersonationBanner();
         });
+
+        // ==========================================
+        // 密碼強度檢測邏輯 (偵測連號、重複字元、鍵盤順序)
+        // ==========================================
+        function evaluatePasswordStrength(password) {
+            if (!password) return { score: 0, text: '尚未輸入', color: 'bg-gray-200', valid: false };
+
+            if (password.length < 8) {
+                return { score: 20, text: '太短（至少需要 8 碼）', color: 'bg-red-500', valid: false };
+            }
+
+            // 檢查常見弱密碼或連號
+            const sequential = /(012|123|234|345|456|567|678|789|890|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz|qwert|asdfg|zxcvb)/i;
+            const repeated = /(.)\1{3,}/; // 超過3個重複字元如 aaaa, 1111
+
+            if (sequential.test(password)) {
+                return { score: 30, text: '包含連續字元或常見序列，不安全', color: 'bg-red-500', valid: false };
+            }
+            if (repeated.test(password)) {
+                return { score: 30, text: '包含過多重複字元，不安全', color: 'bg-red-500', valid: false };
+            }
+
+            let score = 40;
+            if (/[a-z]/.test(password)) score += 20;
+            if (/[A-Z]/.test(password)) score += 20;
+            if (/[0-9]/.test(password)) score += 10;
+            if (/[^A-Za-z0-9]/.test(password)) score += 10;
+
+            if (score < 70) {
+                return { score: 50, text: '強度不足（請混合大小寫英文與數字）', color: 'bg-orange-500', valid: false };
+            } else if (score < 90) {
+                return { score: 80, text: '強度良好', color: 'bg-blue-500', valid: true };
+            } else {
+                return { score: 100, text: '強度極佳', color: 'bg-green-500', valid: true };
+            }
+        }
+
+        function checkPasswordStrength(inputId, barId, textId) {
+            const val = document.getElementById(inputId).value;
+            const result = evaluatePasswordStrength(val);
+            const bar = document.getElementById(barId);
+            const text = document.getElementById(textId);
+
+            bar.style.width = result.score + '%';
+            bar.className = 'h-full transition-all duration-300 ' + result.color;
+            text.innerText = '強度： ' + result.text;
+            text.className = 'text-[10px] ' + (result.valid ? 'text-green-600 font-medium' : 'text-red-500');
+        }
 
         function toggleMode() {
             isSignUp = !isSignUp;
@@ -598,20 +656,13 @@
             const pwMsgEl = document.getElementById('pw-message');
             pwMsgEl.innerText = '';
 
-            if (!newPassword || !confirmPassword) {
-                pwMsgEl.innerText = '請完整填寫新密碼';
-                return;
-            }
-            if (newPassword.length < 6) {
-                pwMsgEl.innerText = '新密碼長度至少需要 6 碼';
+            const strengthCheck = evaluatePasswordStrength(newPassword);
+            if (!strengthCheck.valid) {
+                pwMsgEl.innerText = '新密碼強度不足：' + strengthCheck.text;
                 return;
             }
             if (newPassword !== confirmPassword) {
                 pwMsgEl.innerText = '兩次輸入的新密碼不相符';
-                return;
-            }
-            if (newPassword === '00000000') {
-                pwMsgEl.innerText = '新密碼不能與預設密碼相同';
                 return;
             }
 
@@ -656,16 +707,12 @@
             listenRealtimeUpdates();
         }
 
-        // 模擬登入功能邏輯
         async function startImpersonation(targetUser) {
             if (!confirm(`確定要以【${targetUser}】的身份進入前台檢視嗎？此操作將被記錄。`)) return;
 
-            // 記錄管理員原本身份與模擬狀態至 localStorage
             localStorage.setItem('impersonator_admin', currentUsername);
             localStorage.setItem('is_impersonating', 'true');
             localStorage.setItem('impersonated_user', targetUser);
-
-            // 切換當前操作帳號為目標用戶
             currentUsername = targetUser;
             
             alert(`已成功切換至 ${targetUser} 的視角！`);
@@ -689,17 +736,14 @@
         }
 
         function exitImpersonation() {
-            const adminUser = localStorage.getItem('impersonator_admin') || 'hsliang-admin';
             localStorage.removeItem('is_impersonating');
             localStorage.removeItem('impersonated_user');
             localStorage.removeItem('impersonator_admin');
-            
             alert('已退出模擬登入，返回管理員身份。');
             location.reload();
         }
 
         async function loadAdminImpersonateUsers() {
-            // 從成績記錄或論壇紀錄抓取所有曾經登入過的用戶清單作為模擬對象
             const { data: gradesList } = await supabaseClient.from('grades').select('username');
             const { data: forumList } = await supabaseClient.from('forum_messages').select('username');
             
@@ -1050,10 +1094,7 @@
             canvas.width = viewport.width;
             canvas.className = "shadow-md rounded bg-white max-w-full h-auto";
 
-            const renderContext = {
-                canvasContext: context,
-                viewport: viewport
-            };
+            const renderContext = { canvasContext: context, viewport: viewport };
             await page.render(renderContext).promise;
             
             const pageWrapper = document.createElement('div');
@@ -1081,24 +1122,9 @@
             loadingEl.classList.add('hidden');
         }
 
-        function zoomIn() {
-            if (currentZoom < 300) {
-                currentZoom += 25;
-                updateZoomDisplay();
-            }
-        }
-
-        function zoomOut() {
-            if (currentZoom > 50) {
-                currentZoom -= 25;
-                updateZoomDisplay();
-            }
-        }
-
-        function zoomReset() {
-            currentZoom = 100;
-            updateZoomDisplay();
-        }
+        function zoomIn() { if (currentZoom < 300) { currentZoom += 25; updateZoomDisplay(); } }
+        function zoomOut() { if (currentZoom > 50) { currentZoom -= 25; updateZoomDisplay(); } }
+        function zoomReset() { currentZoom = 100; updateZoomDisplay(); }
 
         async function updateZoomDisplay() {
             document.getElementById('zoom-level-text').innerText = currentZoom + '%';
@@ -1106,9 +1132,7 @@
             if (!imgEl.classList.contains('hidden')) {
                 imgEl.style.transform = `scale(${currentZoom / 100})`;
             }
-            if (currentPdfDoc) {
-                await updateAllPdfPages();
-            }
+            if (currentPdfDoc) { await updateAllPdfPages(); }
         }
 
         function downloadCurrentFile() {
@@ -1127,15 +1151,10 @@
         }
 
         function closeFilePreview() {
-            const modal = document.getElementById('file-preview-modal');
-            document.getElementById('pdf-pages-container').innerHTML = '';
-            document.getElementById('preview-img').src = '';
-            modal.classList.add('hidden');
+            document.getElementById('file-preview-modal').classList.add('hidden');
         }
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeFilePreview();
-        });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFilePreview(); });
 
         async function deleteHandoutItem(id) { await supabaseClient.from('handouts').delete().eq('id', id); renderFolderView(); }
 
@@ -1275,11 +1294,23 @@
             if (!nickname) return;
             await supabaseClient.auth.updateUser({ data: { nickname } });
             updateUserDisplayInfo();
+            alert('暱稱更新成功！');
         }
 
         async function updatePassword() {
             const password = document.getElementById('set-new-password').value;
-            if (password.length >= 6) { await supabaseClient.auth.updateUser({ password }); alert('密碼修改成功'); }
+            const strengthCheck = evaluatePasswordStrength(password);
+            if (!strengthCheck.valid) {
+                alert('密碼強度不足，無法變更：' + strengthCheck.text);
+                return;
+            }
+            const { error } = await supabaseClient.auth.updateUser({ password });
+            if (error) {
+                alert('密碼修改失敗：' + error.message);
+            } else {
+                alert('密碼修改成功！');
+                document.getElementById('set-new-password').value = '';
+            }
         }
 
         function backToDashboard() { showDashboard(currentUsername); }
