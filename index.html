@@ -83,8 +83,13 @@
             </label>
         </div>
 
-        <button id="submit-btn" onclick="handleAuth()" class="w-full bg-black text-white font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 transition mb-4">登入</button>
+        <button id="submit-btn" onclick="handleAuth()" class="w-full bg-black text-white font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 transition mb-2">登入</button>
         
+        <!-- 新增生物辨識登入按鈕 -->
+        <button onclick="handleBiometricLogin()" class="w-full bg-gray-100 border border-gray-300 text-gray-800 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-200 transition mb-4 flex items-center justify-center gap-2 text-xs">
+            <span>🛡️</span> 使用生物辨識 (Touch/Face ID) 登入
+        </button>
+
         <div class="flex justify-between text-xs text-gray-500">
             <button onclick="toggleMode()" id="toggle-btn" class="hover:text-black transition">沒有帳號？點此註冊</button>
             <button onclick="resetPassword()" class="hover:text-black transition">忘記密碼？</button>
@@ -298,6 +303,16 @@
                     <p class="text-xs uppercase tracking-wider text-gray-400 font-medium">當前使用者資訊</p>
                     <p class="text-sm text-gray-800">登入帳號：<span id="set-username" class="font-mono text-gray-600"></span></p>
                     <p class="text-sm text-gray-800">目前暱稱：<span id="set-nickname" class="text-black font-medium">尚未設定</span></p>
+                </div>
+
+                <!-- 新增：生物辨識綁定區塊 -->
+                <div class="bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-3">
+                    <p class="text-xs uppercase tracking-wider text-gray-400 font-medium">生物辨識設定 (Touch ID / Face ID / Windows Hello)</p>
+                    <p class="text-xs text-gray-500">綁定後，您下次即可直接使用本機的生物辨識快速登入此帳號。</p>
+                    <button onclick="registerBiometric()" class="w-full bg-gray-800 hover:bg-black text-white text-xs font-medium py-2 px-4 rounded-lg transition flex items-center justify-center gap-2">
+                        <span>🛡️</span> 綁定此裝置的生物辨識
+                    </button>
+                    <p id="bio-setup-msg" class="text-center text-xs text-green-600"></p>
                 </div>
 
                 <div id="admin-settings-section" class="hidden bg-gray-50 border border-gray-200 p-5 rounded-lg space-y-4">
@@ -643,6 +658,128 @@
             }
         }
 
+        // ==========================================
+        // WebAuthn 生物辨識登入與註冊功能
+        // ==========================================
+        async function registerBiometric() {
+            const msgEl = document.getElementById('bio-setup-msg');
+            msgEl.innerText = '';
+            if (!currentUsername) {
+                alert('請先登入帳號');
+                return;
+            }
+
+            if (!window.PublicKeyCredential) {
+                alert('您的瀏覽器不支援生物辨識 (WebAuthn) 功能');
+                return;
+            }
+
+            try {
+                const challenge = new Uint8Array(32);
+                window.crypto.getRandomValues(challenge);
+                const userIdBytes = new TextEncoder().encode(currentUsername);
+
+                const publicKeyCredentialCreationOptions = {
+                    challenge: challenge,
+                    rp: { name: "我的網站會員系統", id: window.location.hostname },
+                    user: {
+                        id: userIdBytes,
+                        name: currentUsername,
+                        displayName: currentUsername
+                    },
+                    pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+                    timeout: 60000,
+                    attestation: "direct"
+                };
+
+                const credential = await navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions });
+                
+                // 將憑證轉成字串儲存至 Supabase
+                const credIdBase64 = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
+                const configKey = `biometric_${currentUsername}`;
+                
+                const { error } = await supabaseClient.from('site_config').upsert({ 
+                    key: configKey, 
+                    value: JSON.stringify({ credId: credIdBase64 }) 
+                });
+
+                if (error) {
+                    msgEl.innerText = '綁定儲存失敗: ' + error.message;
+                } else {
+                    msgEl.innerText = '✅ 生物辨識綁定成功！';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('綁定取消或失敗：' + err.message);
+            }
+        }
+
+        async function handleBiometricLogin() {
+            const userInput = document.getElementById('username').value.trim();
+            const msgEl = document.getElementById('message');
+            msgEl.innerText = '';
+
+            if (!userInput) {
+                msgEl.innerText = '請先在上方輸入您的【帳號名稱】以進行生物辨識登入';
+                return;
+            }
+
+            if (!window.PublicKeyCredential) {
+                msgEl.innerText = '您的瀏覽器不支援生物辨識功能';
+                return;
+            }
+
+            try {
+                // 從 Supabase 讀取該帳號的憑證
+                const configKey = `biometric_${userInput}`;
+                const { data, error } = await supabaseClient.from('site_config').select('value').eq('key', configKey).single();
+                
+                if (error || !data) {
+                    msgEl.innerText = '此帳號尚未在本機或此裝置綁定生物辨識！';
+                    return;
+                }
+
+                const credentialData = JSON.parse(data.value);
+                const decodedCredId = Uint8Array.from(atob(credentialData.credId), c => c.charCodeAt(0));
+
+                const challenge = new Uint8Array(32);
+                window.crypto.getRandomValues(challenge);
+
+                const publicKeyCredentialRequestOptions = {
+                    challenge: challenge,
+                    timeout: 60000,
+                    allowCredentials: [{
+                        id: decodedCredId,
+                        type: 'public-key',
+                        transports: ['internal', 'usb', 'nfc', 'ble']
+                    }],
+                    userVerification: 'required'
+                };
+
+                const assertion = await navigator.credentials.get({ publicKey: publicKeyCredentialRequestOptions });
+                
+                if (assertion) {
+                    // 生物辨識成功，直接透過 Supabase 進行無密碼登入或背景簽入
+                    currentUsername = userInput;
+                    const email = userInput + '@mathlearn.com';
+                    // 為了取得 user 物件，這裡使用一組預設密碼或自動授權（實務上可配合 Supabase Custom Token，此處簡化以密碼登入或直接進入）
+                    // 檢查是否被 Ban
+                    const { data: banData } = await supabaseClient.from('site_config').select('value').eq('key', `banned_user_${userInput}`).single();
+                    if (banData && JSON.parse(banData.value) === true) {
+                        msgEl.innerText = '您的帳號已被管理員停權（Ban）。';
+                        return;
+                    }
+
+                    // 模擬自動登入成功
+                    document.getElementById('auth-card').classList.add('hidden');
+                    showDashboard(userInput);
+                }
+            } catch (err) {
+                console.error(err);
+                msgEl.innerText = '生物辨識驗證失敗或取消';
+            }
+        }
+
         function checkUserLoginState(user, userInput, inputPassword) {
             document.getElementById('auth-card').classList.add('hidden');
             const metadata = user.user_metadata || {};
@@ -788,7 +925,6 @@
             `).join('');
         }
 
-        // 管理員：對特定使用者進行 Ban / 解封
         async function toggleUserBan(targetUsername) {
             const confirmAction = confirm(`確定要切換使用者 [${targetUsername}] 的停權（Ban）狀態嗎？`);
             if (!confirmAction) return;
@@ -802,7 +938,6 @@
             alert(`已成功將使用者 [${targetUsername}] 狀態更新為：${newStatus ? '【已停權 (Banned)】' : '【已解封】'}`);
         }
 
-        // 管理員：遠端強制指定使用者下次必須更改密碼
         async function forceUserPasswordChange(targetUsername) {
             const confirmAction = confirm(`確定要遠端強制使用者 [${targetUsername}] 變更密碼嗎？\n該用戶下次登入時將會被強制導向密碼修改頁面。`);
             if (!confirmAction) return;
