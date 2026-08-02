@@ -33,6 +33,20 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        /* 跑馬燈動畫樣式 */
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 25s linear infinite;
+        }
+        .animate-marquee:hover {
+            animation-play-state: paused; /* 滑鼠移上去時暫停 */
+        }
     </style>
 </head>
 <body class="bg-white flex items-center justify-center min-h-screen text-gray-800 p-2 sm:p-4">
@@ -105,6 +119,15 @@
 
     <!-- 全螢幕使用者面板 -->
     <div id="user-panel-view" class="hidden fixed inset-0 bg-white z-50 flex flex-col justify-between p-4 sm:p-8 md:p-12 overflow-y-auto">
+        
+        <!-- 頂部跑馬燈公告列 -->
+        <div id="marquee-container" class="w-full bg-amber-50 border border-amber-200 text-amber-900 text-xs py-2 px-3 rounded-lg overflow-hidden relative shrink-0 shadow-sm flex items-center mb-3">
+            <span class="bg-amber-600 text-white font-bold text-[10px] px-2 py-0.5 rounded mr-2 shrink-0 z-10">📢 公告</span>
+            <div class="overflow-hidden w-full whitespace-nowrap">
+                <div id="marquee-text" class="animate-marquee font-medium">歡迎來到網站！目前尚無公告內容。</div>
+            </div>
+        </div>
+
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-100 pb-4 sm:pb-6 shrink-0 gap-3">
             <div class="flex items-center space-x-3">
                 <h1 class="text-lg sm:text-xl font-light tracking-wide text-gray-900">使用者面板</h1>
@@ -153,7 +176,7 @@
                             <span id="admin-badge-1" class="hidden text-[10px] bg-black text-white px-2 py-0.5 rounded">管理員</span>
                         </h3>
                         <div id="admin-announce-box" class="hidden mb-3 shrink-0">
-                            <textarea id="announce-input" rows="3" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入要發布給大家的訊息（支援換行與排版）..."></textarea>
+                            <textarea id="announce-input" rows="3" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入要發布給大家的訊息..."></textarea>
                             <button onclick="postAnnouncement()" class="w-full mt-1 bg-black text-white text-xs py-1.5 rounded-lg hover:bg-gray-800 transition">發布公告</button>
                         </div>
                         <div id="announce-list" class="space-y-2 overflow-y-auto flex-1 pr-3 custom-scrollbar">
@@ -275,8 +298,15 @@
                         <button onclick="saveAdminSiteConfig()" class="w-full bg-black text-white text-xs font-medium py-2 rounded-lg hover:bg-gray-800 transition">儲存版本與狀態</button>
                     </div>
 
+                    <!-- 管理員跑馬燈文字設定 -->
                     <div class="space-y-3 pt-2 border-t border-gray-200">
-                        <p class="text-xs font-medium text-gray-600">2. 修改「幫助」頁面內容</p>
+                        <p class="text-xs font-medium text-gray-600">2. 管理員跑馬燈文字設定</p>
+                        <input type="text" id="setting-marquee-input" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black" placeholder="輸入要顯示在頂部的跑馬燈文字...">
+                        <button onclick="saveAdminMarqueeText()" class="w-full bg-black text-white text-xs font-medium py-2 rounded-lg hover:bg-gray-800 transition">儲存跑馬燈公告文字</button>
+                    </div>
+
+                    <div class="space-y-3 pt-2 border-t border-gray-200">
+                        <p class="text-xs font-medium text-gray-600">3. 修改「幫助」頁面內容</p>
                         <textarea id="setting-help-input" rows="4" class="w-full p-3 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-black resize-none" placeholder="輸入幫助說明文字..."></textarea>
                         <button onclick="saveAdminHelpText()" class="w-full bg-black text-white text-xs font-medium py-2 rounded-lg hover:bg-gray-800 transition">儲存幫助說明內容</button>
                     </div>
@@ -400,7 +430,7 @@
                         <button onclick="zoomReset()" class="hover:bg-gray-700 px-2 py-0.5 rounded text-gray-400 text-[11px]" title="還原預設">重設</button>
                     </div>
 
-                    <!-- 下載按鈕 (支援真實下載) -->
+                    <!-- 下載按鈕 -->
                     <button onclick="downloadCurrentFile()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-sm rounded-md transition flex items-center space-x-1 cursor-pointer">
                         <span>下載</span>
                     </button>
@@ -412,13 +442,8 @@
 
             <!-- 檔案內容顯示區 -->
             <div class="flex-1 bg-gray-100 flex items-center justify-center relative overflow-auto p-4">
-                <!-- PDF 預覽用 iframe -->
                 <iframe id="preview-iframe" class="w-full h-full rounded border border-gray-300 hidden" frameborder="0"></iframe>
-                
-                <!-- JPG/圖片 預覽用 img -->
                 <img id="preview-img" class="transition-transform duration-150 rounded shadow hidden origin-center" alt="預覽圖片" />
-                
-                <!-- 載入中動畫 -->
                 <div id="preview-loading" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70">
                     <span class="text-sm text-blue-600 font-medium">載入中...</span>
                 </div>
@@ -598,6 +623,10 @@
             }
             if (siteConfigs['status_tag']) document.getElementById('display-status-tag').innerText = siteConfigs['status_tag'];
             if (siteConfigs['help_text']) document.getElementById('help-display-box').innerText = siteConfigs['help_text'];
+            if (siteConfigs['marquee_text']) {
+                document.getElementById('marquee-text').innerText = siteConfigs['marquee_text'];
+                document.getElementById('setting-marquee-input').value = siteConfigs['marquee_text'];
+            }
         }
 
         async function saveAdminSiteConfig() {
@@ -607,6 +636,15 @@
             if (sVal) await supabaseClient.from('site_config').upsert({ key: 'status_tag', value: sVal });
             alert('更新成功！');
             loadSiteConfig();
+        }
+
+        async function saveAdminMarqueeText() {
+            const mVal = document.getElementById('setting-marquee-input').value.trim();
+            if (mVal !== '') {
+                await supabaseClient.from('site_config').upsert({ key: 'marquee_text', value: mVal });
+                alert('跑馬燈公告文字更新成功！');
+                loadSiteConfig();
+            }
         }
 
         async function saveAdminHelpText() {
@@ -692,7 +730,6 @@
         async function createNewFolder() {
             const folderInput = document.getElementById('new-folder-name');
             const folderName = folderInput.value.trim();
-            
             if (!folderName) { alert('請輸入資料夾名稱！'); return; }
 
             try {
@@ -701,11 +738,10 @@
                     .from('handouts')
                     .insert([{ title: folderName, is_folder: true, parent_id: parentIdValue }]);
 
-                if (error) { alert('建立資料夾失敗！原因：\n' + error.message); return; }
-
+                if (error) { alert('建立資料夾失敗：' + error.message); return; }
                 folderInput.value = '';
                 renderFolderView();
-            } catch (err) { alert('發生預期外錯誤：' + err.message); }
+            } catch (err) { alert('發生錯誤：' + err.message); }
         }
 
         async function uploadHandoutRealFile() {
@@ -727,7 +763,6 @@
                         .insert([{ title, url: e.target.result, is_folder: false, parent_id: parentIdValue }]);
 
                     if (error) { alert('檔案上傳失敗：' + error.message); return; }
-
                     titleInput.value = ''; fileInput.value = '';
                     renderFolderView();
                 } catch (err) { alert('上傳發生錯誤：' + err.message); }
@@ -801,9 +836,7 @@
             } catch (err) { console.error(err); }
         }
 
-        // ========================================== -->
-        // Google Drive 風格預覽與縮放控制邏輯         -->
-        // ========================================== -->
+        // 預覽與縮放控制
         function openFilePreview(fileUrl, fileName) {
             currentFileUrl = fileUrl;
             currentFileName = fileName;
@@ -850,7 +883,6 @@
             }
         }
 
-        // 放大
         function zoomIn() {
             if (currentZoom < 300) {
                 currentZoom += 25;
@@ -858,7 +890,6 @@
             }
         }
 
-        // 縮小
         function zoomOut() {
             if (currentZoom > 50) {
                 currentZoom -= 25;
@@ -866,7 +897,6 @@
             }
         }
 
-        // 重設縮放
         function zoomReset() {
             currentZoom = 100;
             updateZoomDisplay();
@@ -880,13 +910,10 @@
             }
         }
 
-        // 真實下載檔案
         function downloadCurrentFile() {
             if (!currentFileUrl) return;
             const a = document.createElement('a');
             a.href = currentFileUrl;
-            
-            // 確保副檔名正確
             let downloadName = currentFileName;
             if (!downloadName.includes('.')) {
                 if (currentFileUrl.includes('image/')) downloadName += '.png';
@@ -898,22 +925,15 @@
             document.body.removeChild(a);
         }
 
-        // 關閉預覽 Modal
         function closeFilePreview() {
             const modal = document.getElementById('file-preview-modal');
-            const iframeEl = document.getElementById('preview-iframe');
-            const imgEl = document.getElementById('preview-img');
-            
+            document.getElementById('preview-iframe').src = '';
+            document.getElementById('preview-img').src = '';
             modal.classList.add('hidden');
-            iframeEl.src = '';
-            imgEl.src = '';
         }
 
-        // 監聽 ESC 鍵關閉預覽視窗
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeFilePreview();
-            }
+            if (e.key === 'Escape') closeFilePreview();
         });
 
         async function deleteHandoutItem(id) { await supabaseClient.from('handouts').delete().eq('id', id); renderFolderView(); }
