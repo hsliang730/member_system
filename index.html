@@ -87,10 +87,10 @@
         <p id="message" class="mt-4 text-center text-xs text-red-500"></p>
     </div>
 
-    <!-- 變更密碼卡片 -->
+    <!-- 變更密碼卡片 (強制首次登入修改預設密碼 00000000) -->
     <div id="change-password-card" class="hidden bg-white p-6 sm:p-8 border border-gray-200 rounded-xl shadow-sm w-full max-w-sm">
         <h1 class="text-2xl font-light mb-4 text-center tracking-wide text-gray-900">首次登入安全設定</h1>
-        <p class="text-xs text-gray-500 mb-6 text-center leading-relaxed">為了帳戶安全，請先變更為您的專屬密碼。</p>
+        <p class="text-xs text-gray-500 mb-6 text-center leading-relaxed">偵測到您目前使用的是預設密碼 (00000000)。為了帳戶安全，請立即變更為您的專屬密碼。</p>
         
         <div class="mb-4">
             <label class="block text-gray-600 text-xs uppercase tracking-wider font-medium mb-2">新密碼</label>
@@ -523,26 +523,30 @@
             const email = userInput + '@mathlearn.com';
 
             if (isSignUp) {
+                // 註冊新帳號時，預設帶入 must_change_password: true
                 const { error } = await supabaseClient.auth.signUp({ 
                     email, password, options: { data: { must_change_password: true, nickname: '' } }
                 });
                 if (error) msgEl.innerText = '註冊失敗: ' + error.message;
-                else { alert('註冊成功！請重新登入。'); isSignUp = false; toggleMode(); }
+                else { alert('註冊成功！預設密碼為 00000000，請重新登入。'); isSignUp = false; toggleMode(); }
             } else {
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                if (error) msgEl.innerText = '登入失敗: 帳號或密碼錯誤';
-                else {
+                if (error) {
+                    msgEl.innerText = '登入失敗: 帳號或密碼錯誤';
+                } else {
                     currentUsername = userInput;
                     currentUserObject = data.user;
-                    checkUserLoginState(data.user, userInput);
+                    checkUserLoginState(data.user, userInput, password);
                 }
             }
         }
 
-        function checkUserLoginState(user, userInput) {
+        function checkUserLoginState(user, userInput, inputPassword) {
             document.getElementById('auth-card').classList.add('hidden');
             const metadata = user.user_metadata || {};
-            if (metadata.must_change_password === true) {
+            
+            // 只要標記為 must_change_password 或是剛好輸入了預設密碼 "00000000"，就強制要求修改密碼
+            if (metadata.must_change_password === true || inputPassword === '00000000') {
                 document.getElementById('change-password-card').classList.remove('hidden');
             } else {
                 showDashboard(userInput);
@@ -566,16 +570,40 @@
         async function handleForceChangePassword() {
             const newPassword = document.getElementById('new-password').value;
             const confirmPassword = document.getElementById('confirm-password').value;
-            if (newPassword !== confirmPassword || newPassword.length < 6) return;
+            const pwMsgEl = document.getElementById('pw-message');
+            pwMsgEl.innerText = '';
+
+            if (!newPassword || !confirmPassword) {
+                pwMsgEl.innerText = '請完整填寫新密碼';
+                return;
+            }
+            if (newPassword.length < 6) {
+                pwMsgEl.innerText = '新密碼長度至少需要 6 碼';
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                pwMsgEl.innerText = '兩次輸入的新密碼不相符';
+                return;
+            }
+            if (newPassword === '00000000') {
+                pwMsgEl.innerText = '新密碼不能與預設密碼相同';
+                return;
+            }
 
             const { error } = await supabaseClient.auth.updateUser({
                 password: newPassword,
                 data: { must_change_password: false }
             });
 
-            if (!error) {
-                alert('密碼修改成功！');
+            if (error) {
+                pwMsgEl.innerText = '密碼修改失敗: ' + error.message;
+            } else {
+                alert('密碼修改成功！歡迎進入系統。');
                 document.getElementById('change-password-card').classList.add('hidden');
+                // 同步更新記住的密碼
+                if (localStorage.getItem('remember_username') === currentUsername) {
+                    localStorage.setItem('remember_password', newPassword);
+                }
                 showDashboard(currentUsername);
             }
         }
@@ -871,7 +899,7 @@
 
             const lowerUrl = fileUrl.toLowerCase();
             const isPdf = lowerUrl.includes('.pdf') || lowerUrl.endsWith('pdf') || lowerUrl.includes('application/pdf');
-            const isImage = /\.(jpg|jpeg|png|webp|gif)(?:\?.*)?$ /i.test(lowerUrl) || lowerUrl.includes('image/');
+            const isImage = /\.(jpg|jpeg|png|webp|gif)(?:\?.*)?$/i.test(lowerUrl) || lowerUrl.includes('image/');
 
             if (isPdf) {
                 try {
@@ -1006,7 +1034,7 @@
 
         function closeFilePreview() {
             const modal = document.getElementById('file-preview-modal');
-            document.getElementById('pdf-pages-container.innerHTML = ""');
+            document.getElementById('pdf-pages-container').innerHTML = '';
             document.getElementById('preview-img').src = '';
             modal.classList.add('hidden');
         }
