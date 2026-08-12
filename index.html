@@ -260,23 +260,6 @@
                     </button>
                 </div>
                 
-                <!-- Google 登入按鈕融入區塊 -->
-                <button onclick="handleGoogleLogin()" class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition mb-4 flex items-center justify-center gap-2.5 text-xs shadow-sm">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
-                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.17 21.32 7.23 24 12 24z"/>
-                        <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.5-.38-2.24s.13-1.52.38-2.24V6.6H1.18C.43 8.13 0 9.87 0 12s.43 3.87 1.18 5.4l4.09-3.16z"/>
-                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.23 0 3.17 2.68 1.18 6.6l4.09 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
-                    </svg>
-                    使用 Google 帳號快速登入
-                </button>
-
-                <div class="flex items-center my-4">
-                    <div class="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
-                    <span class="flex-shrink mx-4 text-[10px] text-gray-400 uppercase tracking-widest">或者使用帳密登入</span>
-                    <div class="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
-                </div>
-
                 <div class="mb-4">
                     <label class="block text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-medium mb-2">帳號名稱</label>
                     <input type="text" id="username" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:border-black dark:focus:border-white transition text-gray-900 dark:text-gray-100 text-xs" placeholder="請輸入帳號">
@@ -296,6 +279,17 @@
 
                 <button id="submit-btn" onclick="handleAuth()" class="w-full bg-black dark:bg-white text-white dark:text-black font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition mb-2 shadow-md text-xs">登入</button>
                 
+                <!-- Google 登入按鈕 -->
+                <button onclick="handleGoogleLogin()" class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition mb-2 flex items-center justify-center gap-2 text-xs shadow-sm">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    使用 Google 帳號登入
+                </button>
+
                 <!-- 生物辨識登入按鈕 -->
                 <button onclick="handleBiometricLogin()" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition mb-4 flex items-center justify-center gap-2 text-xs">
                     <span>🛡️</span> 使用生物辨識 (Touch/Face ID) 登入
@@ -781,28 +775,6 @@
         let currentZoom = 100;
         let currentPdfDoc = null;
 
-        // --- Google 登入處理邏輯 ---
-        async function handleGoogleLogin() {
-            const msgEl = document.getElementById('message');
-            msgEl.innerText = '';
-            try {
-                const { data, error } = await supabaseClient.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: {
-                        redirectTo: window.location.origin + window.location.pathname
-                    }
-                });
-                if (error) {
-                    msgEl.innerText = 'Google 登入失敗: ' + error.message;
-                    triggerErrorAnimation();
-                }
-            } catch (err) {
-                console.error(err);
-                msgEl.innerText = 'Google 登入發生異常';
-                triggerErrorAnimation();
-            }
-        }
-
         // --- 1. 眼球追隨與害羞閉眼互動邏輯 ---
         function makeCharacterShy(isShy) {
             const eyesContainer = document.getElementById('character-eyes');
@@ -914,21 +886,9 @@
             setTimeout(() => { icon.classList.remove('refreshing'); }, 400);
         }
 
+        // --- 頁面初始化與 Session 檢查 ---
         window.addEventListener('DOMContentLoaded', async () => {
             initTheme();
-            
-            // 檢查 Google OAuth 重新導向回調與現有 Session
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session && session.user) {
-                currentUserObject = session.user;
-                const emailPrefix = session.user.email ? session.user.email.split('@')[0] : 'user';
-                currentUsername = emailPrefix;
-                triggerSuccessAnimation(() => {
-                    showDashboard(currentUsername);
-                });
-                return;
-            }
-
             const savedUser = localStorage.getItem('remember_username');
             const savedPass = localStorage.getItem('remember_password');
             if (savedUser && savedPass) {
@@ -936,10 +896,30 @@
                 document.getElementById('password').value = savedPass;
                 document.getElementById('remember-me').checked = true;
             }
+            
+            // 檢查 Google 登入重定向回來的 Session
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                let username = session.user.email.split('@')[0];
+                currentUsername = username;
+                currentUserObject = session.user;
+                
+                const { data: banData } = await supabaseClient.from('site_config').select('value').eq('key', `banned_user_${username}`).single();
+                if (banData && JSON.parse(banData.value) === true) {
+                    await supabaseClient.auth.signOut();
+                    document.getElementById('message').innerText = '您的帳號已被管理員停權（Ban），無法登入。';
+                    triggerErrorAnimation();
+                } else {
+                    await recordUserLogin(username);
+                    checkUserLoginState(session.user, username, null);
+                }
+            }
+
             checkImpersonationBanner();
             loadSiteConfig();
         });
 
+        // --- 密碼強度檢查 ---
         function evaluatePasswordStrength(password) {
             if (!password) return { score: 0, text: '尚未輸入', color: 'bg-gray-200', valid: false };
             if (password.length < 8) return { score: 20, text: '太短（至少需要 8 碼）', color: 'bg-red-500', valid: false };
@@ -990,6 +970,21 @@
                 });
             } catch (err) {
                 console.error("記錄登入狀態錯誤:", err);
+            }
+        }
+
+        // --- Google 登入處理函數 ---
+        async function handleGoogleLogin() {
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + window.location.pathname
+                }
+            });
+            if (error) {
+                const msgEl = document.getElementById('message');
+                msgEl.innerText = 'Google 登入失敗: ' + error.message;
+                triggerErrorAnimation();
             }
         }
 
@@ -1055,7 +1050,6 @@
 
                     await recordUserLogin(userInput);
                     
-                    // 成功喜悅動畫與綠色外框後進入系統
                     triggerSuccessAnimation(() => {
                         checkUserLoginState(data.user, userInput, password);
                     });
@@ -1272,231 +1266,73 @@
 
         function checkImpersonationBanner() {
             const isImpersonating = localStorage.getItem('is_impersonating');
-            const targetUser = localStorage.getItem('impersonated_user');
             const banner = document.getElementById('impersonate-banner');
-            
-            if (isImpersonating === 'true' && targetUser) {
+            if (isImpersonating === 'true') {
                 banner.classList.remove('hidden');
-                document.getElementById('impersonated-user-name').innerText = targetUser;
-                document.body.style.paddingTop = '40px';
+                document.getElementById('impersonated-user-name').innerText = localStorage.getItem('impersonated_user') || '';
             } else {
                 banner.classList.add('hidden');
-                document.body.style.paddingTop = '0px';
             }
         }
 
         function exitImpersonation() {
             localStorage.removeItem('is_impersonating');
             localStorage.removeItem('impersonated_user');
-            localStorage.removeItem('impersonator_admin');
-            alert('已退出模擬登入，返回管理員身份。');
-            location.reload();
+            currentUsername = localStorage.getItem('impersonator_admin');
+            alert('已退出模擬視角，返回管理員身份。');
+            checkImpersonationBanner();
+            document.getElementById('user-panel-view').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.remove('hidden');
         }
 
-        async function loadAdminDashboardUserList() {
-            const { data: gradesList } = await supabaseClient.from('grades').select('username');
-            const { data: forumList } = await supabaseClient.from('forum_messages').select('username');
-            const { data: configList } = await supabaseClient.from('site_config').select('key, value').like('key', 'active_login_%');
-            
-            let activeLogins = {};
-            if (configList) {
-                configList.forEach(item => {
-                    const uname = item.key.replace('active_login_', '');
-                    try { activeLogins[uname] = JSON.parse(item.value); } catch(e){}
-                });
-            }
-
-            let allUsers = ['hsliang-admin', 'Dummy'];
-            if (gradesList) gradesList.forEach(i => allUsers.push(i.username));
-            if (forumList) forumList.forEach(i => allUsers.push(i.username));
-            Object.keys(activeLogins).forEach(u => allUsers.push(u));
-            
-            let uniqueUsers = [...new Set(allUsers)].filter(u => u !== 'hsliang-admin');
-
-            const tbody = document.getElementById('admin-dashboard-user-list');
-            tbody.innerHTML = uniqueUsers.map(u => {
-                const loginInfo = activeLogins[u];
-                const statusBadge = loginInfo ? 
-                    `<span class="text-[10px] bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded ml-1">🟢 已登入 (${new Date(loginInfo.login_time).toLocaleTimeString()})</span>` : 
-                    `<span class="text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded ml-1">⚪ 離線</span>`;
-                
-                return `
-                    <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td class="p-2 font-mono text-gray-800 dark:text-gray-200 flex items-center flex-wrap">👤 ${u} ${statusBadge}</td>
-                        <td class="p-2 text-right space-x-1">
-                            <button onclick="toggleUserBan('${u}')" class="bg-amber-600 hover:bg-amber-700 text-white text-[10px] px-2 py-1 rounded transition">Ban / 解封</button>
-                            <button onclick="forceUserPasswordChange('${u}')" class="bg-red-600 hover:bg-red-700 text-white text-[10px] px-2 py-1 rounded transition">強制改密碼</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+        function logout() {
+            supabaseClient.auth.signOut().then(() => {
+                location.reload();
+            });
         }
 
-        async function loadAdminImpersonateUsers() {
-            const { data: gradesList } = await supabaseClient.from('grades').select('username');
-            const { data: forumList } = await supabaseClient.from('forum_messages').select('username');
-            const { data: configList } = await supabaseClient.from('site_config').select('key, value').like('key', 'active_login_%');
-            
-            let activeLogins = {};
-            if (configList) {
-                configList.forEach(item => {
-                    const uname = item.key.replace('active_login_', '');
-                    try { activeLogins[uname] = JSON.parse(item.value); } catch(e){}
-                });
-            }
-
-            let allUsers = ['hsliang-admin', 'Dummy'];
-            if (gradesList) gradesList.forEach(i => allUsers.push(i.username));
-            if (forumList) forumList.forEach(i => allUsers.push(i.username));
-            Object.keys(activeLogins).forEach(u => allUsers.push(u));
-            
-            let uniqueUsers = [...new Set(allUsers)].filter(u => u !== 'hsliang-admin');
-
-            const tbody = document.getElementById('admin-impersonate-user-list');
-
-            tbody.innerHTML = uniqueUsers.map(u => {
-                const loginInfo = activeLogins[u];
-                const statusBadge = loginInfo ? 
-                    `<span class="text-[10px] bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded ml-1">🟢 已登入</span>` : 
-                    `<span class="text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded ml-1">⚪ 離線</span>`;
-
-                return `
-                    <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td class="p-2 font-mono text-gray-800 dark:text-gray-200 flex items-center flex-wrap">👤 ${u} ${statusBadge}</td>
-                        <td class="p-2 text-right space-x-1">
-                            <button onclick="startImpersonation('${u}')" class="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 text-[10px] px-2 py-1 rounded transition">模擬</button>
-                            <button onclick="toggleUserBan('${u}')" class="bg-amber-600 hover:bg-amber-700 text-white text-[10px] px-2 py-1 rounded transition">Ban/解封</button>
-                            <button onclick="forceUserPasswordChange('${u}')" class="bg-red-600 hover:bg-red-700 text-white text-[10px] px-2 py-1 rounded transition">強制改密碼</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        async function toggleUserBan(targetUsername) {
-            const confirmAction = confirm(`確定要切換使用者 [${targetUsername}] 的停權（Ban）狀態嗎？`);
-            if (!confirmAction) return;
-
-            const configKey = `banned_user_${targetUsername}`;
-            const { data } = await supabaseClient.from('site_config').select('value').eq('key', configKey).single();
-            const currentStatus = data ? JSON.parse(data.value) : false;
-            const newStatus = !currentStatus;
-
-            await supabaseClient.from('site_config').upsert({ key: configKey, value: JSON.stringify(newStatus) });
-            alert(`已成功將使用者 [${targetUsername}] 狀態更新為：${newStatus ? '【已停權 (Banned)】' : '【已解封】'}`);
-            loadAdminImpersonateUsers();
-            loadAdminDashboardUserList();
-        }
-
-        async function forceUserPasswordChange(targetUsername) {
-            const confirmAction = confirm(`確定要遠端強制使用者 [${targetUsername}] 變更密碼嗎？\n該用戶下次登入時將會被強制導向密碼修改頁面。`);
-            if (!confirmAction) return;
-
-            const configKey = `force_pw_${targetUsername}`;
-            await supabaseClient.from('site_config').upsert({ key: configKey, value: 'true' });
-            alert(`已成功發送遠端強制改密碼指令給 [${targetUsername}]！`);
-        }
-
-        function listenRealtimeUpdates() {
-            supabaseClient.channel('public:announcements')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => loadAnnouncements()).subscribe();
-
-            supabaseClient.channel('public:handouts')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'handouts' }, () => renderFolderView()).subscribe();
-
-            supabaseClient.channel('public:forum_messages')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'forum_messages' }, () => loadForumMessages()).subscribe();
-
-            supabaseClient.channel('public:site_config')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'site_config' }, () => {
-                    loadSiteConfig();
-                    if (currentUsername === 'hsliang-admin') {
-                        loadAdminDashboardUserList();
-                        loadAdminImpersonateUsers();
-                    }
-                }).subscribe();
-
-            supabaseClient.channel('public:faq_submissions')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'faq_submissions' }, () => {
-                    loadUserFaqChat();
-                    if (currentUsername === 'hsliang-admin') { loadAdminFaqList(); renderAdminChat(); }
-                }).subscribe();
-        }
-
-        async function loadSiteConfig() {
-            const { data } = await supabaseClient.from('site_config').select('*');
-            if (!data) return;
-            data.forEach(item => { siteConfigs[item.key] = item.value; });
-
-            if (siteConfigs['version_tag']) {
-                document.getElementById('display-version-tag').innerText = siteConfigs['version_tag'];
-                document.getElementById('footer-v-tag').innerText = siteConfigs['version_tag'];
-            }
-            if (siteConfigs['status_tag']) document.getElementById('display-status-tag').innerText = siteConfigs['status_tag'];
-            if (siteConfigs['help_text']) document.getElementById('help-display-box').innerText = siteConfigs['help_text'];
-            if (siteConfigs['marquee_text']) {
-                document.getElementById('marquee-text').innerText = siteConfigs['marquee_text'];
-                document.getElementById('setting-marquee-input').value = siteConfigs['marquee_text'];
-            }
-            if (siteConfigs['login_hero_title']) {
-                document.getElementById('login-hero-title').innerHTML = siteConfigs['login_hero_title'];
-                document.getElementById('setting-login-title-input').value = siteConfigs['login_hero_title'];
-            }
-            if (siteConfigs['login_hero_desc']) {
-                document.getElementById('login-hero-desc').innerText = siteConfigs['login_hero_desc'];
-                document.getElementById('setting-login-desc-input').value = siteConfigs['login_hero_desc'];
-            }
-        }
-
-        // 保持其餘完整原版函數與介面操作
-        function updateUserDisplayInfo() {
-            document.getElementById('panel-user-info').innerText = '使用者: ' + currentUsername;
-            document.getElementById('set-username').innerText = currentUsername;
-        }
-
-        function checkAdminFeatures() {
-            const isAdmin = (currentUsername === 'hsliang-admin');
-            const adminBadge = document.getElementById('admin-badge-1');
-            const adminAnnounceBox = document.getElementById('admin-announce-box');
-            const adminFolderBox = document.getElementById('admin-folder-box');
-            const adminSettingsSec = document.getElementById('admin-settings-section');
-            const adminFaqSec = document.getElementById('admin-faq-management-section');
-            const thActionHeader = document.getElementById('th-action-header');
-
-            if (isAdmin) {
-                if (adminBadge) adminBadge.classList.remove('hidden');
-                if (adminAnnounceBox) adminAnnounceBox.classList.remove('hidden');
-                if (adminFolderBox) adminFolderBox.classList.remove('hidden');
-                if (adminSettingsSec) adminSettingsSec.classList.remove('hidden');
-                if (adminFaqSec) adminFaqSec.classList.remove('hidden');
-                if (thActionHeader) thActionHeader.classList.remove('hidden');
-            } else {
-                if (adminBadge) adminBadge.classList.add('hidden');
-                if (adminAnnounceBox) adminAnnounceBox.classList.add('hidden');
-                if (adminFolderBox) adminFolderBox.classList.add('hidden');
-                if (adminSettingsSec) adminSettingsSec.classList.add('hidden');
-                if (adminFaqSec) adminFaqSec.classList.add('hidden');
-                if (thActionHeader) thActionHeader.classList.add('hidden');
-            }
-        }
-
-        function switchTab(tabName) {
-            ['home', 'grades', 'settings', 'faq', 'help'].forEach(t => {
-                const el = document.getElementById('tab-' + t);
-                const nav = document.getElementById('nav-' + t);
-                if (el) el.classList.add('hidden');
+        function switchTab(tabId) {
+            ['home', 'grades', 'settings', 'faq', 'help'].forEach(id => {
+                const tab = document.getElementById(`tab-${id}`);
+                if (tab) tab.classList.add('hidden');
+                const nav = document.getElementById(`nav-${id}`);
                 if (nav) {
                     nav.classList.remove('text-gray-900', 'dark:text-white', 'font-medium');
                     nav.classList.add('text-gray-500', 'dark:text-gray-400');
                 }
             });
-            const targetTab = document.getElementById('tab-' + tabName);
-            const targetNav = document.getElementById('nav-' + tabName);
-            if (targetTab) targetTab.classList.remove('hidden');
-            if (targetNav) {
-                targetNav.classList.remove('text-gray-500', 'dark:text-gray-400');
-                targetNav.classList.add('text-gray-900', 'dark:text-white', 'font-medium');
+            const activeTab = document.getElementById(`tab-${tabId}`);
+            if (activeTab) activeTab.classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.remove('text-gray-500', 'dark:text-gray-400');
+                activeNav.classList.add('text-gray-900', 'dark:text-white', 'font-medium');
             }
+        }
+
+        function backToDashboard() {
+            document.getElementById('user-panel-view').classList.add('hidden');
+            showDashboard(currentUsername);
+        }
+
+        function updateUserDisplayInfo() {
+            document.getElementById('panel-user-info').innerText = '使用者：' + currentUsername;
+            document.getElementById('set-username').innerText = currentUsername;
+        }
+
+        function checkAdminFeatures() {
+            const isAdmin = (currentUsername === 'hsliang-admin');
+            const elementsToToggle = [
+                'admin-badge-1', 'admin-announce-box', 'admin-folder-box', 
+                'admin-settings-section', 'admin-faq-management-section', 'th-action-header'
+            ];
+            elementsToToggle.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (isAdmin) el.classList.remove('hidden');
+                    else el.classList.add('hidden');
+                }
+            });
         }
 
         function startSessionTimer() {
@@ -1511,305 +1347,261 @@
             }, 1000);
         }
 
-        function backToDashboard() {
-            document.getElementById('user-panel-view').classList.add('hidden');
-            showDashboard(currentUsername);
-        }
+        async function loadSiteConfig() {
+            try {
+                const { data } = await supabaseClient.from('site_config').select('*');
+                if (data) {
+                    siteConfigs = {};
+                    data.forEach(item => { siteConfigs[item.key] = item.value; });
+                }
 
-        async function logout() {
-            await supabaseClient.auth.signOut();
-            localStorage.removeItem('is_impersonating');
-            localStorage.removeItem('impersonated_user');
-            localStorage.removeItem('impersonator_admin');
-            location.reload();
-        }
+                if (siteConfigs['site_version']) {
+                    document.getElementById('display-version-tag').innerText = siteConfigs['site_version'];
+                    document.getElementById('footer-v-tag').innerText = siteConfigs['site_version'];
+                    const vInput = document.getElementById('setting-version-input');
+                    if (vInput) vInput.value = siteConfigs['site_version'];
+                }
+                if (siteConfigs['site_status']) {
+                    document.getElementById('display-status-tag').innerText = siteConfigs['site_status'];
+                    const sInput = document.getElementById('setting-status-input');
+                    if (sInput) sInput.value = siteConfigs['site_status'];
+                }
+                if (siteConfigs['site_marquee']) {
+                    document.getElementById('marquee-text').innerText = siteConfigs['site_marquee'];
+                    const mInput = document.getElementById('setting-marquee-input');
+                    if (mInput) mInput.value = siteConfigs['site_marquee'];
+                }
+                if (siteConfigs['site_help']) {
+                    document.getElementById('help-display-box').innerText = siteConfigs['site_help'];
+                    const hInput = document.getElementById('setting-help-input');
+                    if (hInput) hInput.value = siteConfigs['site_help'];
+                }
+                if (siteConfigs['login_title']) {
+                    const ltInput = document.getElementById('setting-login-title-input');
+                    if (ltInput) ltInput.value = siteConfigs['login_title'];
+                    document.getElementById('login-hero-title').innerHTML = siteConfigs['login_title'];
+                }
+                if (siteConfigs['login_desc']) {
+                    const ldInput = document.getElementById('setting-login-desc-input');
+                    if (ldInput) ldInput.value = siteConfigs['login_desc'];
+                    document.getElementById('login-hero-desc').innerText = siteConfigs['login_desc'];
+                }
 
-        // 公告、資料夾、講義、成績、論壇、FAQ 完整占位邏輯
-        async function loadAnnouncements() {
-            const { data } = await supabaseClient.from('announcements').select('*').order('created_at', { ascending: false });
-            const listEl = document.getElementById('announce-list');
-            if (!listEl) return;
-            if (!data || data.length === 0) {
-                listEl.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">目前尚無即時訊息</p>';
-                return;
+                const { data: nickData } = await supabaseClient.from('site_config').select('value').eq('key', `nickname_${currentUsername}`).single();
+                if (nickData) {
+                    document.getElementById('set-nickname').innerText = nickData.value;
+                    document.getElementById('input-nickname').value = nickData.value;
+                }
+            } catch (err) {
+                console.error("載入網站設定錯誤:", err);
             }
-            listEl.innerHTML = data.map(i => `
-                <div class="p-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-xs space-y-1">
-                    <p class="text-gray-800 dark:text-gray-200">${i.content}</p>
-                    <p class="text-[10px] text-gray-400 text-right">${new Date(i.created_at).toLocaleString()}</p>
-                </div>
-            `).join('');
+        }
+
+        async function loadAnnouncements() {
+            const listEl = document.getElementById('announce-list');
+            try {
+                const { data, error } = await supabaseClient.from('announcements').select('*').order('created_at', { ascending: false });
+                if (error || !data || data.length === 0) {
+                    listEl.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">目前尚無即時訊息</p>';
+                    return;
+                }
+                listEl.innerHTML = data.map(item => `
+                    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-3 rounded-lg shadow-sm text-xs relative group">
+                        <p class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">${item.content}</p>
+                        <div class="flex justify-between items-center mt-2 text-[10px] text-gray-400">
+                            <span>${new Date(item.created_at).toLocaleString()}</span>
+                            ${currentUsername === 'hsliang-admin' ? `<button onclick="deleteAnnouncement('${item.id}')" class="text-red-500 hover:underline">刪除</button>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
         }
 
         async function postAnnouncement() {
-            const content = document.getElementById('announce-input').value.trim();
-            if (!content) return;
-            await supabaseClient.from('announcements').insert([{ content, username: currentUsername }]);
-            document.getElementById('announce-input').value = '';
+            const input = document.getElementById('announce-input');
+            const content = input.value.trim();
+            if (!content) { alert('請輸入公告內容'); return; }
+
+            const { error } = await supabaseClient.from('announcements').insert([{ content }]);
+            if (error) {
+                alert('發布失敗: ' + error.message);
+            } else {
+                input.value = '';
+                loadAnnouncements();
+            }
+        }
+
+        async function deleteAnnouncement(id) {
+            if (!confirm('確定要刪除這則公告嗎？')) return;
+            await supabaseClient.from('announcements').delete().eq('id', id);
             loadAnnouncements();
         }
 
         async function renderFolderView() {
             const container = document.getElementById('folder-view-container');
-            if (!container) return;
-            const { data: folders } = await supabaseClient.from('folders').select('*').eq('parent_id', currentFolderId);
-            const { data: handouts } = await supabaseClient.from('handouts').select('*').eq('folder_id', currentFolderId);
+            const pathTitle = document.getElementById('folder-path-title');
+            const backBtn = document.getElementById('back-folder-btn');
 
-            let html = '';
-            if (folders) {
+            let pathStr = folderBreadcrumbs.map(b => b.name).join(' > ');
+            pathTitle.innerText = pathStr;
+
+            if (folderBreadcrumbs.length > 1) {
+                backBtn.classList.remove('hidden');
+            } else {
+                backBtn.classList.add('hidden');
+            }
+
+            try {
+                let folderQuery = supabaseClient.from('folders').select('*');
+                if (currentFolderId === null) folderQuery = folderQuery.is('parent_id', null);
+                else folderQuery = folderQuery.eq('parent_id', currentFolderId);
+
+                let fileQuery = supabaseClient.from('handouts').select('*');
+                if (currentFolderId === null) fileQuery = fileQuery.is('folder_id', null);
+                else fileQuery = fileQuery.eq('folder_id', currentFolderId);
+
+                const [folderRes, fileRes] = await Promise.all([folderQuery, fileQuery]);
+                const folders = folderRes.data || [];
+                const files = fileRes.data || [];
+
+                if (folders.length === 0 && files.length === 0) {
+                    container.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">此資料夾目前尚無內容</p>';
+                    return;
+                }
+
+                let html = '';
                 folders.forEach(f => {
                     html += `
-                        <div onclick="openFolder('${f.id}', '${f.name}')" class="win11-folder p-3 rounded-lg cursor-pointer flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <span class="text-base">📁</span>
-                                <span class="text-xs font-semibold text-gray-800 dark:text-gray-200">${f.name}</span>
+                        <div onclick="openFolder('${f.id}', '${f.name}')" class="win11-folder p-3 rounded-lg flex items-center justify-between cursor-pointer">
+                            <div class="flex items-center space-x-2.5 truncate">
+                                <span class="text-amber-500 text-base">📁</span>
+                                <span class="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">${f.name}</span>
                             </div>
-                            <span class="text-xs text-gray-400">&gt;</span>
+                            ${currentUsername === 'hsliang-admin' ? `<button onclick="event.stopPropagation(); deleteFolder('${f.id}')" class="text-red-400 hover:text-red-600 text-[10px] px-1">刪除</button>` : ''}
                         </div>
                     `;
                 });
-            }
-            if (handouts) {
-                handouts.forEach(h => {
+
+                files.forEach(file => {
                     html += `
-                        <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded-lg flex items-center justify-between shadow-sm">
-                            <div class="flex items-center space-x-2 overflow-hidden cursor-pointer" onclick="previewFile('${h.file_url}', '${h.title}')">
-                                <span class="text-base">📄</span>
-                                <span class="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">${h.title}</span>
+                        <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-3 rounded-lg flex items-center justify-between hover:border-black dark:hover:border-white transition shadow-sm">
+                            <div onclick="previewFile('${file.file_url}', '${file.title}')" class="flex items-center space-x-2.5 truncate cursor-pointer flex-1">
+                                <span class="text-blue-500 text-base">📄</span>
+                                <div class="truncate">
+                                    <p class="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">${file.title}</p>
+                                    <p class="text-[10px] text-gray-400">點擊預覽檔案</p>
+                                </div>
                             </div>
-                            <div class="flex items-center space-x-1 shrink-0">
-                                <button onclick="previewFile('${h.file_url}', '${h.title}')" class="text-[11px] bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 px-2 py-1 rounded">預覽</button>
-                                ${currentUsername === 'hsliang-admin' ? `<button onclick="deleteHandout('${h.id}')" class="text-[11px] bg-red-50 text-red-600 px-2 py-1 rounded">刪除</button>` : ''}
+                            <div class="flex items-center space-x-2 shrink-0">
+                                <button onclick="previewFile('${file.file_url}', '${file.title}')" class="text-[11px] bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition">預覽</button>
+                                ${currentUsername === 'hsliang-admin' ? `<button onclick="deleteHandout('${file.id}')" class="text-red-500 text-[11px] px-1 hover:underline">刪除</button>` : ''}
                             </div>
                         </div>
                     `;
                 });
+
+                container.innerHTML = html;
+            } catch (err) {
+                console.error(err);
             }
-            if (!html) html = '<p class="text-xs text-gray-400 text-center mt-12">此資料夾尚無內容</p>';
-            container.innerHTML = html;
         }
 
-        function openFolder(id, name) {
-            currentFolderId = id;
-            folderBreadcrumbs.push({ id, name });
-            document.getElementById('folder-path-title').innerText = folderBreadcrumbs.map(b => b.name).join(' > ');
-            document.getElementById('back-folder-btn').classList.remove('hidden');
+        function openFolder(folderId, folderName) {
+            folderBreadcrumbs.push({ id: folderId, name: folderName });
+            currentFolderId = folderId;
             renderFolderView();
         }
 
         function navigateParentFolder() {
-            folderBreadcrumbs.pop();
-            const parent = folderBreadcrumbs[folderBreadcrumbs.length - 1];
-            currentFolderId = parent.id;
-            document.getElementById('folder-path-title').innerText = folderBreadcrumbs.map(b => b.name).join(' > ');
-            if (folderBreadcrumbs.length === 1) document.getElementById('back-folder-btn').classList.add('hidden');
-            renderFolderView();
+            if (folderBreadcrumbs.length > 1) {
+                folderBreadcrumbs.pop();
+                currentFolderId = folderBreadcrumbs[folderBreadcrumbs.length - 1].id;
+                renderFolderView();
+            }
         }
 
         async function createNewFolder() {
-            const name = document.getElementById('new-folder-name').value.trim();
-            if (!name) return;
-            await supabaseClient.from('folders').insert([{ name, parent_id: currentFolderId }]);
-            document.getElementById('new-folder-name').value = '';
+            const input = document.getElementById('new-folder-name');
+            const name = input.value.trim();
+            if (!name) { alert('請輸入資料夾名稱'); return; }
+
+            const { error } = await supabaseClient.from('folders').insert([{ name, parent_id: currentFolderId }]);
+            if (error) alert('建立失敗: ' + error.message);
+            else {
+                input.value = '';
+                renderFolderView();
+            }
+        }
+
+        async function deleteFolder(folderId) {
+            if (!confirm('確定要刪除此資料夾及其內部所有檔案嗎？')) return;
+            await supabaseClient.from('folders').delete().eq('id', folderId);
             renderFolderView();
         }
 
         async function uploadHandoutRealFile() {
-            const title = document.getElementById('handout-title').value.trim();
+            const titleInput = document.getElementById('handout-title');
             const fileInput = document.getElementById('handout-file-input');
-            if (!title || fileInput.files.length === 0) { alert('請輸入標題並選擇檔案'); return; }
+            const title = titleInput.value.trim();
             const file = fileInput.files[0];
-            const fileName = `${Date.now()}_${file.name}`;
-            
-            const { error: uploadErr } = await supabaseClient.storage.from('handouts').upload(fileName, file);
-            if (uploadErr) { alert('上傳失敗: ' + uploadErr.message); return; }
 
-            const { data: pubData } = supabaseClient.storage.from('handouts').getPublicUrl(fileName);
-            await supabaseClient.from('handouts').insert([{ title, file_url: pubData.publicUrl, folder_id: currentFolderId }]);
-            
-            document.getElementById('handout-title').value = '';
-            fileInput.value = '';
-            renderFolderView();
-            alert('講義上傳成功！');
+            if (!title || !file) { alert('請輸入檔案標題並選擇檔案'); return; }
+
+            const filePath = `handouts/${Date.now()}_${file.name}`;
+            const { data: uploadData, error: uploadError } = await supabaseClient.storage.from('website-files').upload(filePath, file);
+
+            if (uploadError) {
+                alert('檔案上傳失敗: ' + uploadError.message);
+                return;
+            }
+
+            const { data: publicUrlData } = supabaseClient.storage.from('website-files').getPublicUrl(filePath);
+            const file_url = publicUrlData.publicUrl;
+
+            const { error: dbError } = await supabaseClient.from('handouts').insert([{ title, file_url, folder_id: currentFolderId }]);
+            if (dbError) {
+                alert('儲存檔案記錄失敗: ' + dbError.message);
+            } else {
+                titleInput.value = '';
+                fileInput.value = '';
+                renderFolderView();
+                alert('上傳成功！');
+            }
         }
 
         async function deleteHandout(id) {
-            if (!confirm('確定要刪除此檔案嗎？')) return;
+            if (!confirm('確定要刪除這個檔案嗎？')) return;
             await supabaseClient.from('handouts').delete().eq('id', id);
             renderFolderView();
         }
 
-        async function loadForumMessages() {
-            const { data } = await supabaseClient.from('forum_messages').select('*').order('created_at', { ascending: true });
-            const listEl = document.getElementById('forum-list');
-            if (!listEl) return;
-            if (!data || data.length === 0) {
-                listEl.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">大家一起來聊聊吧！</p>';
-                return;
-            }
-            listEl.innerHTML = data.map(m => `
-                <div class="p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs">
-                    <span class="font-semibold text-blue-600 dark:text-blue-400">${m.username}: </span>
-                    <span class="text-gray-800 dark:text-gray-200">${m.message}</span>
-                </div>
-            `).join('');
-        }
-
-        async function postForumMessage() {
-            const message = document.getElementById('forum-input').value.trim();
-            if (!message) return;
-            await supabaseClient.from('forum_messages').insert([{ username: currentUsername, message }]);
-            document.getElementById('forum-input').value = '';
-            loadForumMessages();
-        }
-
-        async function submitGrade() {
-            const subject = document.getElementById('grade-subject').value.trim();
-            const range = document.getElementById('grade-range').value.trim();
-            const score = document.getElementById('grade-score').value.trim();
-            if (!subject || !score) { alert('請填寫科目與成績'); return; }
-            await supabaseClient.from('grades').insert([{ username: currentUsername, subject, range, score: Number(score) }]);
-            document.getElementById('grade-subject').value = '';
-            document.getElementById('grade-range').value = '';
-            document.getElementById('grade-score').value = '';
-            loadGrades();
-            alert('成績登記成功！');
-        }
-
-        async function loadGrades() {
-            const { data } = await supabaseClient.from('grades').select('*').order('created_at', { ascending: false });
-            const tbody = document.getElementById('grade-table-body');
-            if (!tbody) return;
-            if (!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-gray-400">尚無成績記錄</td></tr>';
-                return;
-            }
-            const isAdmin = (currentUsername === 'hsliang-admin');
-            tbody.innerHTML = data.map(g => `
-                <tr class="border-b border-gray-100 dark:border-gray-800">
-                    <td class="p-2.5 font-mono">${g.username}</td>
-                    <td class="p-2.5">${g.subject}</td>
-                    <td class="p-2.5">${g.range || '-'}</td>
-                    <td class="p-2.5 font-bold">${g.score}</td>
-                    <td class="p-2.5 text-[10px] text-gray-400">${new Date(g.created_at).toLocaleString()}</td>
-                    ${isAdmin ? `<td class="p-2.5"><button onclick="deleteGrade('${g.id}')" class="text-red-500 text-[10px] underline">刪除</button></td>` : ''}
-                </tr>
-            `).join('');
-        }
-
-        async function deleteGrade(id) {
-            await supabaseClient.from('grades').delete().eq('id', id);
-            loadGrades();
-        }
-
-        async function updateNickname() {
-            const nickname = document.getElementById('input-nickname').value.trim();
-            if (!nickname) return;
-            await supabaseClient.from('site_config').upsert({ key: `nickname_${currentUsername}`, value: nickname });
-            document.getElementById('set-nickname').innerText = nickname;
-            alert('暱稱更新成功！');
-        }
-
-        async function updatePassword() {
-            const newPassword = document.getElementById('set-new-password').value;
-            const strength = evaluatePasswordStrength(newPassword);
-            if (!strength.valid) { alert('密碼強度不足'); return; }
-            const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
-            if (error) alert('更新失敗: ' + error.message);
-            else { alert('密碼更新成功！'); document.getElementById('set-new-password').value = ''; }
-        }
-
-        // FAQ 與預覽 Modal 簡化介面相容
-        async function loadUserFaqChat() {
-            const { data } = await supabaseClient.from('faq_submissions').select('*').eq('username', currentUsername).order('created_at', { ascending: true });
-            const box = document.getElementById('user-faq-chat-box');
-            if (!box) return;
-            if (!data || data.length === 0) {
-                box.innerHTML = '<p class="text-xs text-gray-400 text-center my-auto">尚無發問紀錄！</p>';
-                return;
-            }
-            box.innerHTML = data.map(d => `
-                <div class="p-2 bg-white dark:bg-gray-800 rounded text-xs space-y-1 shadow-sm">
-                    <p class="font-bold text-gray-700 dark:text-gray-300">問: ${d.question}</p>
-                    ${d.reply ? `<p class="text-blue-600 dark:text-blue-400 pl-2 border-l-2 border-blue-400">答: ${d.reply}</p>` : '<p class="text-gray-400 italic">等待客服回覆中...</p>'}
-                </div>
-            `).join('');
-        }
-
-        async function submitFaqQuestion() {
-            const question = document.getElementById('faq-message-input').value.trim();
-            if (!question) return;
-            await supabaseClient.from('faq_submissions').insert([{ username: currentUsername, question }]);
-            document.getElementById('faq-message-input').value = '';
-            loadUserFaqChat();
-        }
-
-        async function loadAdminFaqList() {
-            const { data } = await supabaseClient.from('faq_submissions').select('username');
-            if (!data) return;
-            const users = [...new Set(data.map(i => i.username))];
-            const listEl = document.getElementById('admin-faq-user-list');
-            if (!listEl) return;
-            listEl.innerHTML = users.map(u => `
-                <div onclick="selectAdminFaqUser('${u}')" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded cursor-pointer text-xs font-mono">👤 ${u}</div>
-            `).join('');
-        }
-
-        function selectAdminFaqUser(u) {
-            selectedAdminChatUser = u;
-            document.getElementById('admin-chat-title').innerText = `與 ${u} 的對話`;
-            document.getElementById('admin-chat-input-box').classList.remove('hidden');
-            renderAdminChat();
-        }
-
-        async function renderAdminChat() {
-            if (!selectedAdminChatUser) return;
-            const { data } = await supabaseClient.from('faq_submissions').select('*').eq('username', selectedAdminChatUser).order('created_at', { ascending: true });
-            const msgBox = document.getElementById('admin-chat-messages');
-            if (!data) return;
-            msgBox.innerHTML = data.map(d => `
-                <div class="p-2 bg-white dark:bg-gray-800 rounded text-xs space-y-1">
-                    <p><b>Q:</b> ${d.question}</p>
-                    <p class="text-blue-500"><b>A:</b> ${d.reply || '尚未回覆'}</p>
-                </div>
-            `).join('');
-        }
-
-        async function sendAdminReplyToSelectedUser() {
-            const reply = document.getElementById('admin-reply-input').value.trim();
-            if (!reply || !selectedAdminChatUser) return;
-            await supabaseClient.from('faq_submissions').update({ reply }).eq('username', selectedAdminChatUser).is('reply', null);
-            document.getElementById('admin-reply-input').value = '';
-            renderAdminChat();
-        }
-
-        function closeAdminMobileChat() {
-            document.getElementById('admin-chat-panel').classList.add('hidden');
-        }
-
-        // 檔案預覽
-        function previewFile(url, name) {
+        async function previewFile(url, name) {
             currentFileUrl = url;
             currentFileName = name;
+            currentZoom = 100;
+            document.getElementById('zoom-level-text').innerText = '100%';
             document.getElementById('preview-modal-title').innerText = name;
             document.getElementById('file-preview-modal').classList.remove('hidden');
             document.getElementById('preview-loading').classList.remove('hidden');
-            
-            const imgEl = document.getElementById('preview-img');
+
             const pdfContainer = document.getElementById('pdf-pages-container');
+            const imgEl = document.getElementById('preview-img');
             pdfContainer.innerHTML = '';
             imgEl.classList.add('hidden');
 
-            if (url.toLowerCase().includes('.pdf')) {
-                pdfjsLib.getDocument(url).promise.then(pdfDoc => {
-                    currentPdfDoc = pdfDoc;
+            if (url.toLowerCase().endsWith('.pdf') || url.includes('.pdf?')) {
+                try {
+                    const loadingTask = pdfjsLib.getDocument(url);
+                    currentPdfDoc = await loadingTask.promise;
+                    await renderAllPdfPages();
                     document.getElementById('preview-loading').classList.add('hidden');
-                    renderAllPdfPages();
-                }).catch(err => {
-                    console.error(err);
+                } catch (err) {
+                    console.error("PDF 載入錯誤:", err);
+                    alert('PDF 預覽載入失敗，將嘗試直接下載或於新視窗開啟。');
                     document.getElementById('preview-loading').classList.add('hidden');
-                    alert('PDF 載入失敗');
-                });
+                }
             } else {
                 imgEl.src = url;
                 imgEl.classList.remove('hidden');
@@ -1817,61 +1609,404 @@
             }
         }
 
-        function renderAllPdfPages() {
-            if (!currentPdfDoc) return;
+        async function renderAllPdfPages() {
             const pdfContainer = document.getElementById('pdf-pages-container');
             pdfContainer.innerHTML = '';
-            for (let i = 1; i <= currentPdfDoc.numPages; i++) {
-                const canvas = document.createElement('canvas');
-                canvas.className = 'shadow-md bg-white rounded';
-                pdfContainer.appendChild(canvas);
-                renderPdfPage(i, canvas);
-            }
-        }
+            if (!currentPdfDoc) return;
 
-        function renderPdfPage(pageNumber, canvas) {
-            currentPdfDoc.getPage(pageNumber).then(page => {
-                const viewport = page.getViewport({ scale: currentZoom / 100 });
+            for (let pageNum = 1; pageNum <= currentPdfDoc.numPages; pageNum++) {
+                const page = await currentPdfDoc.getPage(pageNum);
+                const viewport = page.getViewport({ scale: currentZoom / 100 * 1.5 });
+
+                const canvas = document.createElement('canvas');
+                canvas.className = 'shadow-lg bg-white rounded my-2';
                 const context = canvas.getContext('2d');
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
-                page.render({ canvasContext: context, viewport: viewport });
-            });
+
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
+                pdfContainer.appendChild(canvas);
+            }
         }
 
-        function zoomIn() { currentZoom += 25; document.getElementById('zoom-level-text').innerText = currentZoom + '%'; if (currentPdfDoc) renderAllPdfPages(); }
-        function zoomOut() { if (currentZoom > 50) currentZoom -= 25; document.getElementById('zoom-level-text').innerText = currentZoom + '%'; if (currentPdfDoc) renderAllPdfPages(); }
-        function zoomReset() { currentZoom = 100; document.getElementById('zoom-level-text').innerText = '100%'; if (currentPdfDoc) renderAllPdfPages(); }
-        function closeFilePreview() { document.getElementById('file-preview-modal').classList.add('hidden'); currentPdfDoc = null; }
-        function downloadCurrentFile() { window.open(currentFileUrl, '_blank'); }
-
-        // 系統設定管理員儲存接口
-        async function saveAdminSiteConfig() {
-            const v = document.getElementById('setting-version-input').value.trim();
-            const s = document.getElementById('setting-status-input').value.trim();
-            if (v) await supabaseClient.from('site_config').upsert({ key: 'version_tag', value: v });
-            if (s) await supabaseClient.from('site_config').upsert({ key: 'status_tag', value: s });
-            alert('版本與狀態儲存成功！');
+        function zoomIn() {
+            if (currentZoom < 250) {
+                currentZoom += 25;
+                document.getElementById('zoom-level-text').innerText = currentZoom + '%';
+                if (currentPdfDoc) renderAllPdfPages();
+                else {
+                    const img = document.getElementById('preview-img');
+                    img.style.transform = `scale(${currentZoom / 100})`;
+                }
+            }
         }
 
-        async function saveAdminMarqueeText() {
-            const m = document.getElementById('setting-marquee-input').value.trim();
-            if (m) await supabaseClient.from('site_config').upsert({ key: 'marquee_text', value: m });
-            alert('跑馬燈公告儲存成功！');
+        function zoomOut() {
+            if (currentZoom > 50) {
+                currentZoom -= 25;
+                document.getElementById('zoom-level-text').innerText = currentZoom + '%';
+                if (currentPdfDoc) renderAllPdfPages();
+                else {
+                    const img = document.getElementById('preview-img');
+                    img.style.transform = `scale(${currentZoom / 100})`;
+                }
+            }
         }
 
-        async function saveAdminHelpText() {
-            const h = document.getElementById('setting-help-input').value.trim();
-            if (h) await supabaseClient.from('site_config').upsert({ key: 'help_text', value: h });
-            alert('幫助說明儲存成功！');
+        function zoomReset() {
+            currentZoom = 100;
+            document.getElementById('zoom-level-text').innerText = '100%';
+            if (currentPdfDoc) renderAllPdfPages();
+            else {
+                const img = document.getElementById('preview-img');
+                img.style.transform = `scale(1)`;
+            }
+        }
+
+        function downloadCurrentFile() {
+            if (!currentFileUrl) return;
+            const a = document.createElement('a');
+            a.href = currentFileUrl;
+            a.download = currentFileName || 'download';
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function closeFilePreview() {
+            document.getElementById('file-preview-modal').classList.add('hidden');
+            currentPdfDoc = null;
+        }
+
+        async function loadForumMessages() {
+            const listEl = document.getElementById('forum-list');
+            try {
+                const { data, error } = await supabaseClient.from('forum_messages').select('*').order('created_at', { ascending: true });
+                if (error || !data || data.length === 0) {
+                    listEl.innerHTML = '<p class="text-xs text-gray-400 text-center mt-12">大家一起來聊聊吧！</p>';
+                    return;
+                }
+                listEl.innerHTML = data.map(item => `
+                    <div class="p-2.5 bg-gray-50 dark:bg-gray-800 rounded-lg text-xs border border-gray-100 dark:border-gray-700">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-semibold text-blue-600 dark:text-blue-400">${item.username}</span>
+                            <span class="text-[10px] text-gray-400">${new Date(item.created_at).toLocaleTimeString()}</span>
+                        </div>
+                        <p class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">${item.content}</p>
+                    </div>
+                `).join('');
+                listEl.scrollTop = listEl.scrollHeight;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function postForumMessage() {
+            const input = document.getElementById('forum-input');
+            const content = input.value.trim();
+            if (!content) return;
+
+            const { error } = await supabaseClient.from('forum_messages').insert([{ username: currentUsername, content }]);
+            if (error) alert('發送失敗: ' + error.message);
+            else {
+                input.value = '';
+                loadForumMessages();
+            }
+        }
+
+        async function submitGrade() {
+            const subject = document.getElementById('grade-subject').value.trim();
+            const range = document.getElementById('grade-range').value.trim();
+            const score = document.getElementById('grade-score').value.trim();
+
+            if (!subject || !range || !score) { alert('請完整填寫科目、範圍與成績'); return; }
+
+            const { error } = await supabaseClient.from('grades').insert([{ username: currentUsername, subject, range, score: Number(score) }]);
+            if (error) alert('登記失敗: ' + error.message);
+            else {
+                document.getElementById('grade-subject').value = '';
+                document.getElementById('grade-range').value = '';
+                document.getElementById('grade-score').value = '';
+                loadGrades();
+                alert('成績登記成功！');
+            }
+        }
+
+        async function loadGrades() {
+            const tbody = document.getElementById('grade-table-body');
+            try {
+                let query = supabaseClient.from('grades').select('*').order('created_at', { ascending: false });
+                if (currentUsername !== 'hsliang-admin') {
+                    query = query.eq('username', currentUsername);
+                }
+
+                const { data, error } = await query;
+                if (error || !data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-gray-400">尚無成績記錄</td></tr>';
+                    return;
+                }
+
+                const isAdmin = (currentUsername === 'hsliang-admin');
+                tbody.innerHTML = data.map(g => `
+                    <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                        <td class="p-2.5 font-medium">${g.username}</td>
+                        <td class="p-2.5">${g.subject}</td>
+                        <td class="p-2.5">${g.range}</td>
+                        <td class="p-2.5 font-bold text-blue-600 dark:text-blue-400">${g.score}分</td>
+                        <td class="p-2.5 text-[10px] text-gray-400">${new Date(g.created_at).toLocaleString()}</td>
+                        ${isAdmin ? `<td class="p-2.5"><button onclick="deleteGrade('${g.id}')" class="text-red-500 hover:underline">刪除</button></td>` : ''}
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function deleteGrade(id) {
+            if (!confirm('確定要刪除這筆成績記錄嗎？')) return;
+            await supabaseClient.from('grades').delete().eq('id', id);
+            loadGrades();
         }
 
         async function saveAdminLoginTextConfig() {
-            const title = document.getElementById('setting-login-title-input').value.trim();
-            const desc = document.getElementById('setting-login-desc-input').value.trim();
-            if (title) await supabaseClient.from('site_config').upsert({ key: 'login_hero_title', value: title });
-            if (desc) await supabaseClient.from('site_config').upsert({ key: 'login_hero_desc', value: desc });
-            alert('登入介面文字儲存成功！');
+            const title = document.getElementById('setting-login-title-input').value;
+            const desc = document.getElementById('setting-login-desc-input').value;
+            await supabaseClient.from('site_config').upsert({ key: 'login_title', value: title });
+            await supabaseClient.from('site_config').upsert({ key: 'login_desc', value: desc });
+            alert('登入介面文字已成功儲存！');
+        }
+
+        async function saveAdminSiteConfig() {
+            const version = document.getElementById('setting-version-input').value;
+            const status = document.getElementById('setting-status-input').value;
+            await supabaseClient.from('site_config').upsert({ key: 'site_version', value: version });
+            await supabaseClient.from('site_config').upsert({ key: 'site_status', value: status });
+            alert('網站版本與狀態已成功儲存！');
+            loadSiteConfig();
+        }
+
+        async function saveAdminMarqueeText() {
+            const text = document.getElementById('setting-marquee-input').value;
+            await supabaseClient.from('site_config').upsert({ key: 'site_marquee', value: text });
+            alert('跑馬燈公告已成功儲存！');
+            loadSiteConfig();
+        }
+
+        async function saveAdminHelpText() {
+            const text = document.getElementById('setting-help-input').value;
+            await supabaseClient.from('site_config').upsert({ key: 'site_help', value: text });
+            alert('幫助說明內容已成功儲存！');
+            loadSiteConfig();
+        }
+
+        async function updateNickname() {
+            const nickname = document.getElementById('input-nickname').value.trim();
+            const { error } = await supabaseClient.from('site_config').upsert({ key: `nickname_${currentUsername}`, value: nickname });
+            if (error) alert('儲存失敗: ' + error.message);
+            else {
+                alert('暱稱已成功更新！');
+                loadSiteConfig();
+            }
+        }
+
+        async function updatePassword() {
+            const newPassword = document.getElementById('set-new-password').value;
+            const strengthCheck = evaluatePasswordStrength(newPassword);
+            if (!strengthCheck.valid) {
+                alert('新密碼強度不足：' + strengthCheck.text);
+                return;
+            }
+
+            const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+            if (error) alert('密碼變更失敗: ' + error.message);
+            else {
+                alert('密碼已成功變更！');
+                document.getElementById('set-new-password').value = '';
+                if (localStorage.getItem('remember_username') === currentUsername) {
+                    localStorage.setItem('remember_password', newPassword);
+                }
+            }
+        }
+
+        async function submitFaqQuestion() {
+            const input = document.getElementById('faq-message-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const { error } = await supabaseClient.from('faq_chats').insert([{ username: currentUsername, sender: 'user', message }]);
+            if (error) alert('傳送失敗: ' + error.message);
+            else {
+                input.value = '';
+                loadUserFaqChat();
+            }
+        }
+
+        async function loadUserFaqChat() {
+            const chatBox = document.getElementById('user-faq-chat-box');
+            try {
+                const { data, error } = await supabaseClient.from('faq_chats').select('*').eq('username', currentUsername).order('created_at', { ascending: true });
+                if (error || !data || data.length === 0) {
+                    chatBox.innerHTML = '<p class="text-xs text-gray-400 text-center my-auto">尚無發問紀錄！</p>';
+                    return;
+                }
+                chatBox.innerHTML = data.map(item => `
+                    <div class="flex flex-col ${item.sender === 'user' ? 'items-end' : 'items-start'}">
+                        <div class="max-w-[85%] p-2.5 rounded-lg text-xs shadow-sm ${item.sender === 'user' ? 'bg-black text-white dark:bg-white dark:text-black' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700'}">
+                            <p class="whitespace-pre-wrap">${item.message}</p>
+                        </div>
+                        <span class="text-[9px] text-gray-400 mt-0.5 px-1">${new Date(item.created_at).toLocaleTimeString()}</span>
+                    </div>
+                `).join('');
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadAdminFaqList() {
+            const listEl = document.getElementById('admin-faq-user-list');
+            try {
+                const { data, error } = await supabaseClient.from('faq_chats').select('username, created_at').order('created_at', { ascending: false });
+                if (error || !data) return;
+
+                const uniqueUsers = [...new Set(data.map(item => item.username))].filter(u => u !== 'hsliang-admin');
+                if (uniqueUsers.length === 0) {
+                    listEl.innerHTML = '<p class="text-xs text-gray-400 p-2">尚無用戶發問</p>';
+                    return;
+                }
+
+                listEl.innerHTML = uniqueUsers.map(user => `
+                    <button onclick="selectAdminChatUser('${user}')" class="w-full text-left p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-xs font-medium text-gray-800 dark:text-gray-200 truncate flex items-center justify-between">
+                        <span>👤 ${user}</span>
+                        <span class="text-[10px] text-gray-400">點擊回覆</span>
+                    </button>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function selectAdminChatUser(username) {
+            selectedAdminChatUser = username;
+            document.getElementById('admin-chat-title').innerText = `正在回覆用戶：${username}`;
+            document.getElementById('admin-chat-input-box').classList.remove('hidden');
+            
+            const chatPanel = document.getElementById('admin-chat-panel');
+            chatPanel.classList.remove('hidden');
+            chatPanel.classList.add('flex');
+
+            const messagesBox = document.getElementById('admin-chat-messages');
+            const { data, error } = await supabaseClient.from('faq_chats').select('*').eq('username', username).order('created_at', { ascending: true });
+            
+            if (error || !data || data.length === 0) {
+                messagesBox.innerHTML = '<p class="text-xs text-gray-400 text-center my-auto">尚無對話紀錄</p>';
+                return;
+            }
+
+            messagesBox.innerHTML = data.map(item => `
+                <div class="flex flex-col ${item.sender === 'admin' ? 'items-end' : 'items-start'}">
+                    <div class="max-w-[85%] p-2.5 rounded-lg text-xs shadow-sm ${item.sender === 'admin' ? 'bg-[#8cabd9] text-white' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700'}">
+                        <p class="whitespace-pre-wrap">${item.message}</p>
+                    </div>
+                    <span class="text-[9px] text-gray-400 mt-0.5 px-1">${new Date(item.created_at).toLocaleTimeString()}</span>
+                </div>
+            `).join('');
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+        }
+
+        function closeAdminMobileChat() {
+            const chatPanel = document.getElementById('admin-chat-panel');
+            chatPanel.classList.add('hidden');
+            chatPanel.classList.remove('flex');
+        }
+
+        async function sendAdminReplyToSelectedUser() {
+            if (!selectedAdminChatUser) return;
+            const input = document.getElementById('admin-reply-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const { error } = await supabaseClient.from('faq_chats').insert([{ username: selectedAdminChatUser, sender: 'admin', message }]);
+            if (error) alert('回覆失敗: ' + error.message);
+            else {
+                input.value = '';
+                selectAdminChatUser(selectedAdminChatUser);
+            }
+        }
+
+        async function loadAdminImpersonateUsers() {
+            const tbody = document.getElementById('admin-impersonate-user-list');
+            const dashTbody = document.getElementById('admin-dashboard-user-list');
+            try {
+                const { data } = await supabaseClient.from('site_config').select('*').like('key', 'active_login_%');
+                if (!data || data.length === 0) {
+                    const emptyHtml = '<tr><td colspan="2" class="p-2 text-center text-gray-400">目前沒有在線用戶記錄</td></tr>';
+                    tbody.innerHTML = emptyHtml;
+                    dashTbody.innerHTML = emptyHtml;
+                    return;
+                }
+
+                let html = '';
+                for (const item of data) {
+                    const loginInfo = JSON.parse(item.value);
+                    const username = loginInfo.username;
+                    if (username === 'hsliang-admin') continue;
+
+                    const { data: banData } = await supabaseClient.from('site_config').select('value').eq('key', `banned_user_${username}`).single();
+                    const isBanned = banData ? JSON.parse(banData.value) : false;
+
+                    html += `
+                        <tr class="border-b border-gray-100 dark:border-gray-800">
+                            <td class="p-2">
+                                <p class="font-semibold text-gray-800 dark:text-gray-200">${username} ${isBanned ? '<span class="text-red-500 text-[10px]">(已Ban)</span>' : ''}</p>
+                                <p class="text-[10px] text-gray-400">登入時間: ${new Date(loginInfo.login_time).toLocaleTimeString()}</p>
+                            </td>
+                            <td class="p-2 text-right space-x-1">
+                                <button onclick="startImpersonation('${username}')" class="px-2 py-1 bg-blue-600 text-white rounded text-[10px] hover:bg-blue-700">模擬</button>
+                                <button onclick="toggleBanUser('${username}', ${isBanned})" class="px-2 py-1 ${isBanned ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-600 hover:bg-amber-700'} text-white rounded text-[10px]">${isBanned ? '解除' : 'Ban'}</button>
+                                <button onclick="forceUserChangePassword('${username}')" class="px-2 py-1 bg-gray-600 text-white rounded text-[10px] hover:bg-gray-700">強制改密碼</button>
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                tbody.innerHTML = html || '<tr><td colspan="2" class="p-2 text-center text-gray-400">無其他會員在線</td></tr>';
+                dashTbody.innerHTML = html || '<tr><td colspan="2" class="p-2 text-center text-gray-400">無其他會員在線</td></tr>';
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function toggleBanUser(username, currentBanStatus) {
+            const newStatus = !currentBanStatus;
+            await supabaseClient.from('site_config').upsert({ key: `banned_user_${username}`, value: JSON.stringify(newStatus) });
+            alert(`已成功${newStatus ? '封鎖 (Ban)' : '解除封鎖'}用戶 ${username}`);
+            loadAdminImpersonateUsers();
+        }
+
+        async function forceUserChangePassword(username) {
+            await supabaseClient.from('site_config').upsert({ key: `force_pw_${username}`, value: 'true' });
+            alert(`已成功設定！用戶 ${username} 下次登入時將被強制更改密碼。`);
+        }
+
+        function resetPassword() {
+            alert('如需重設密碼，請聯繫管理員 hsliang-admin 協助處理。');
+        }
+
+        function listenRealtimeUpdates() {
+            supabaseClient.channel('public-db-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => {
+                    loadAnnouncements();
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'forum_messages' }, () => {
+                    loadForumMessages();
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'faq_chats' }, () => {
+                    loadUserFaqChat();
+                    if (currentUsername === 'hsliang-admin') loadAdminFaqList();
+                })
+                .subscribe();
         }
     </script>
 </body>
