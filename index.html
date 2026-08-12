@@ -74,57 +74,60 @@
             animation: spin 0.8s linear infinite;
         }
 
-        /* === 幾何圖形角色動態背景特效 === */
-        .geometric-bg {
-            position: fixed;
-            inset: 0;
+        /* === 幾何圖形角色動態背景特效 (左側區域專用) === */
+        .geometric-hero-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
-            z-index: -1;
-            pointer-events: none;
         }
         .geo-shape {
             position: absolute;
-            opacity: 0.15;
+            opacity: 0.25;
             transition: transform 0.3s ease;
         }
         .dark .geo-shape {
-            opacity: 0.25;
+            opacity: 0.35;
         }
         @keyframes floatSlow {
             0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
-            50% { transform: translateY(-20px) rotate(180deg) scale(1.05); }
+            50% { transform: translateY(-25px) rotate(180deg) scale(1.08); }
         }
         @keyframes floatFast {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(25px) rotate(-180deg); }
+            50% { transform: translateY(30px) rotate(-180deg); }
         }
         @keyframes pulseGlow {
-            0%, 100% { transform: scale(1); opacity: 0.2; }
-            50% { transform: scale(1.15); opacity: 0.35; }
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.2); opacity: 0.5; }
         }
         .shape-circle {
-            width: 120px; height: 120px; border-radius: 50%;
+            width: 130px; height: 130px; border-radius: 50%;
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            top: 10%; left: 10%;
+            top: 15%; left: 15%;
             animation: floatSlow 8s ease-in-out infinite;
         }
         .shape-square {
-            width: 100px; height: 100px; border-radius: 20px;
+            width: 110px; height: 110px; border-radius: 24px;
             background: linear-gradient(135deg, #10b981, #3b82f6);
-            bottom: 15%; right: 12%;
+            bottom: 15%; right: 15%;
             animation: floatFast 10s ease-in-out infinite;
         }
         .shape-triangle {
             width: 0; height: 0;
-            border-left: 60px solid transparent;
-            border-right: 60px solid transparent;
-            border-bottom: 100px solid #f59e0b;
-            top: 20%; right: 15%;
+            border-left: 70px solid transparent;
+            border-right: 70px solid transparent;
+            border-bottom: 120px solid #f59e0b;
+            top: 25%; right: 18%;
             animation: pulseGlow 6s ease-in-out infinite;
         }
         .shape-ring {
-            width: 90px; height: 90px; border: 12px solid #ec4899; border-radius: 50%;
-            bottom: 20%; left: 15%;
+            width: 100px; height: 100px; border: 14px solid #ec4899; border-radius: 50%;
+            bottom: 20%; left: 18%;
             animation: floatSlow 9s ease-in-out infinite reverse;
         }
 
@@ -132,13 +135,13 @@
         .eye-container {
             display: flex;
             justify-content: center;
-            gap: 12px;
-            margin-bottom: 1rem;
+            gap: 16px;
+            margin-bottom: 1.25rem;
             transition: all 0.3s ease;
         }
         .eye {
-            width: 16px;
-            height: 16px;
+            width: 20px;
+            height: 20px;
             background-color: #1f2937;
             border-radius: 50%;
             position: relative;
@@ -149,13 +152,13 @@
             background-color: #f3f4f6;
         }
         .pupil {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             background-color: #ffffff;
             border-radius: 50%;
             position: absolute;
-            top: 4px;
-            left: 4px;
+            top: 5px;
+            left: 5px;
             transition: transform 0.1s ease-out;
         }
         .dark .pupil {
@@ -163,7 +166,7 @@
         }
         /* 害羞閉眼狀態：變為水平線條 */
         .shy-eyes .eye {
-            height: 3px;
+            height: 4px;
             border-radius: 2px;
             transform: scaleY(0.5);
         }
@@ -173,9 +176,9 @@
         /* 成功喜悅彈跳動畫 */
         @keyframes successBounce {
             0% { transform: scale(1) translateY(0); }
-            30% { transform: scale(1.2) translateY(-15px); background-color: #10b981; }
-            50% { transform: scale(0.95) translateY(0); }
-            70% { transform: scale(1.05) translateY(-5px); }
+            30% { transform: scale(1.1) translateY(-10px); }
+            50% { transform: scale(0.98) translateY(0); }
+            70% { transform: scale(1.02) translateY(-4px); }
             100% { transform: scale(1) translateY(0); }
         }
         .success-animate {
@@ -183,19 +186,11 @@
         }
     </style>
 </head>
-<body class="bg-white dark:bg-gray-900 flex items-center justify-center min-h-screen text-gray-800 dark:text-gray-100 p-2 sm:p-4 transition-colors duration-200 relative">
-
-    <!-- 幾何圖形角色動畫背景 -->
-    <div class="geometric-bg">
-        <div class="geo-shape shape-circle"></div>
-        <div class="geo-shape shape-square"></div>
-        <div class="geo-shape shape-triangle"></div>
-        <div class="geo-shape shape-ring"></div>
-    </div>
+<body class="bg-gray-50 dark:bg-gray-950 flex items-center justify-center min-h-screen text-gray-800 dark:text-gray-100 p-3 sm:p-6 transition-colors duration-200 relative">
 
     <!-- 全域佈景主題切換按鈕 (固定於右上角) -->
     <div class="fixed top-4 right-4 z-50">
-        <button onclick="toggleTheme()" class="bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-lg text-xs font-medium shadow-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition flex items-center gap-1.5">
+        <button onclick="toggleTheme()" class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-lg text-xs font-medium shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-1.5">
             <span id="theme-icon">🌙</span> <span id="theme-text">深色模式</span>
         </button>
     </div>
@@ -206,82 +201,113 @@
         <button onclick="exitImpersonation()" class="bg-white text-amber-700 px-3 py-1 rounded font-bold hover:bg-amber-100 transition shadow-sm">退出並返回管理員</button>
     </div>
 
-    <!-- 登入卡片 -->
-    <div id="auth-card" class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md p-6 sm:p-8 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl w-full max-w-sm transition-colors duration-200 relative z-10">
+    <!-- 雙欄式登入主容器：左側圖形個體與歡迎標語，右側登入表單 -->
+    <div id="main-auth-layout" class="w-full max-w-5xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-200/80 dark:border-gray-800 rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-colors duration-200 relative z-10">
         
-        <!-- 幾何角色互動眼睛 -->
-        <div id="character-eyes" class="eye-container">
-            <div class="eye"><div class="pupil" id="pupil-left"></div></div>
-            <div class="eye"><div class="pupil" id="pupil-right"></div></div>
-        </div>
+        <!-- 左側：幾何圖形角色動態視覺區 -->
+        <div class="lg:col-span-6 bg-gradient-to-br from-blue-50/60 via-indigo-50/40 to-purple-50/60 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-8 sm:p-12 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-800">
+            <div class="relative z-10">
+                <span class="inline-block text-[11px] font-semibold tracking-widest text-blue-600 dark:text-blue-400 uppercase bg-blue-100 dark:bg-blue-950/60 px-3 py-1 rounded-full mb-4">Interactive Portal</span>
+                <h2 class="text-3xl sm:text-4xl font-light tracking-tight text-gray-900 dark:text-white mb-3">歡迎來到<br><span class="font-normal text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">會員整合系統</span></h2>
+                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">請在右側輸入您的帳號密碼。當您專注輸入時，系統角色將與您互動；登入成功後更將解鎖完整面板與講義資源。</p>
+            </div>
 
-        <!-- 登入面板標題與即時刷新按鈕 -->
-        <div class="flex items-center justify-between mb-6">
-            <h1 id="form-title" class="text-2xl font-light tracking-wide text-gray-900 dark:text-white">會員登入</h1>
-            <button onclick="refreshLoginPanel()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition" title="即時重新整理面板">
-                <svg id="refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            </button>
-        </div>
-        
-        <div class="mb-4">
-            <label class="block text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-medium mb-2">帳號名稱</label>
-            <input type="text" id="username" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:border-black dark:focus:border-white transition text-gray-900 dark:text-gray-100" placeholder="請輸入帳號">
-        </div>
-        
-        <div class="mb-4">
-            <label class="block text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-medium mb-2">密碼</label>
-            <input type="password" id="password" onfocus="makeCharacterShy(true)" onblur="makeCharacterShy(false)" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:border-black dark:focus:border-white transition text-gray-900 dark:text-gray-100" placeholder="請輸入密碼">
-        </div>
-
-        <div class="mb-6 flex items-center justify-between">
-            <label class="flex items-center text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
-                <input type="checkbox" id="remember-me" class="rounded border-gray-300 dark:border-gray-700 text-black focus:ring-0 mr-2">
-                記住我的帳號與密碼
-            </label>
-        </div>
-
-        <button id="submit-btn" onclick="handleAuth()" class="w-full bg-black dark:bg-white text-white dark:text-black font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition mb-2 shadow-md">登入</button>
-        
-        <!-- 生物辨識登入按鈕 -->
-        <button onclick="handleBiometricLogin()" class="w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition mb-4 flex items-center justify-center gap-2 text-xs">
-            <span>🛡️</span> 使用生物辨識 (Touch/Face ID) 登入
-        </button>
-
-        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-            <button onclick="toggleMode()" id="toggle-btn" class="hover:text-black dark:hover:text-white transition">沒有帳號？點此註冊</button>
-            <button onclick="resetPassword()" class="hover:text-black dark:hover:text-white transition">忘記密碼？</button>
-        </div>
-        
-        <p id="message" class="mt-4 text-center text-xs text-red-500"></p>
-    </div>
-
-    <!-- 變更密碼卡片 -->
-    <div id="change-password-card" class="hidden bg-white/90 dark:bg-gray-800/95 backdrop-blur-md p-6 sm:p-8 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl w-full max-w-sm transition-colors duration-200 relative z-10">
-        <h1 class="text-2xl font-light mb-4 text-center tracking-wide text-gray-900 dark:text-white">帳戶安全設定</h1>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 text-center leading-relaxed">偵測到您目前使用的是預設密碼或管理員已要求您變更密碼。為了帳戶安全，請設定一組專屬密碼。</p>
-        
-        <div class="mb-3">
-            <label class="block text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-medium mb-1.5">新密碼</label>
-            <input type="password" id="new-password" onfocus="makeCharacterShy(true)" onblur="makeCharacterShy(false)" oninput="checkPasswordStrength('new-password', 'strength-bar-1', 'strength-text-1')" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:border-black dark:focus:border-white transition text-xs text-gray-900 dark:text-gray-100" placeholder="請輸入新密碼">
-            
-            <div class="mt-2 space-y-1">
-                <div class="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
-                    <div id="strength-bar-1" class="h-full bg-red-500 transition-all duration-300" style="width: 0%"></div>
+            <!-- 幾何背景動畫角色實體 -->
+            <div class="geometric-hero-container my-6">
+                <div class="geo-shape shape-circle"></div>
+                <div class="geo-shape shape-square"></div>
+                <div class="geo-shape shape-triangle"></div>
+                <div class="geo-shape shape-ring"></div>
+                
+                <!-- 互動眼睛置於中央 -->
+                <div id="character-eyes" class="eye-container relative z-10 bg-white/40 dark:bg-gray-800/40 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/60 dark:border-gray-700 shadow-sm">
+                    <div class="eye"><div class="pupil" id="pupil-left"></div></div>
+                    <div class="eye"><div class="pupil" id="pupil-right"></div></div>
                 </div>
-                <p id="strength-text-1" class="text-[10px] text-gray-400">強度：尚未輸入 (至少 8 碼，須含大小寫英文及數字)</p>
+            </div>
+
+            <div class="relative z-10 text-[11px] text-gray-400 dark:text-gray-500 flex items-center justify-between">
+                <span>Secure Authentication</span>
+                <span>v.0.0.1 Beta 3</span>
             </div>
         </div>
-        
-        <div class="mb-5">
-            <label class="block text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-medium mb-1.5">確認新密碼</label>
-            <input type="password" id="confirm-password" onfocus="makeCharacterShy(true)" onblur="makeCharacterShy(false)" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:border-black dark:focus:border-white transition text-xs text-gray-900 dark:text-gray-100" placeholder="請再次輸入新密碼">
+
+        <!-- 右側：登入與驗證表單區 -->
+        <div class="lg:col-span-6 p-8 sm:p-12 flex flex-col justify-center">
+            
+            <!-- 登入卡片內容 -->
+            <div id="auth-card" class="w-full max-w-sm mx-auto">
+                <!-- 登入面板標題與即時刷新按鈕 -->
+                <div class="flex items-center justify-between mb-6">
+                    <h1 id="form-title" class="text-2xl font-light tracking-wide text-gray-900 dark:text-white">會員登入</h1>
+                    <button onclick="refreshLoginPanel()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition" title="即時重新整理面板">
+                        <svg id="refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-medium mb-2">帳號名稱</label>
+                    <input type="text" id="username" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:border-black dark:focus:border-white transition text-gray-900 dark:text-gray-100 text-xs" placeholder="請輸入帳號">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-medium mb-2">密碼</label>
+                    <input type="password" id="password" onfocus="makeCharacterShy(true)" onblur="makeCharacterShy(false)" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:border-black dark:focus:border-white transition text-gray-900 dark:text-gray-100 text-xs" placeholder="請輸入密碼">
+                </div>
+
+                <div class="mb-6 flex items-center justify-between">
+                    <label class="flex items-center text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+                        <input type="checkbox" id="remember-me" class="rounded border-gray-300 dark:border-gray-700 text-black focus:ring-0 mr-2">
+                        記住我的帳號與密碼
+                    </label>
+                </div>
+
+                <button id="submit-btn" onclick="handleAuth()" class="w-full bg-black dark:bg-white text-white dark:text-black font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition mb-2 shadow-md text-xs">登入</button>
+                
+                <!-- 生物辨識登入按鈕 -->
+                <button onclick="handleBiometricLogin()" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition mb-4 flex items-center justify-center gap-2 text-xs">
+                    <span>🛡️</span> 使用生物辨識 (Touch/Face ID) 登入
+                </button>
+
+                <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <button onclick="toggleMode()" id="toggle-btn" class="hover:text-black dark:hover:text-white transition">沒有帳號？點此註冊</button>
+                    <button onclick="resetPassword()" class="hover:text-black dark:hover:text-white transition">忘記密碼？</button>
+                </div>
+                
+                <p id="message" class="mt-4 text-center text-xs text-red-500"></p>
+            </div>
+
+            <!-- 變更密碼卡片 (初始隱藏) -->
+            <div id="change-password-card" class="hidden w-full max-w-sm mx-auto">
+                <h1 class="text-2xl font-light mb-4 text-center tracking-wide text-gray-900 dark:text-white">帳戶安全設定</h1>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 text-center leading-relaxed">偵測到您目前使用的是預設密碼或管理員已要求您變更密碼。為了帳戶安全，請設定一組專屬密碼。</p>
+                
+                <div class="mb-3">
+                    <label class="block text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-medium mb-1.5">新密碼</label>
+                    <input type="password" id="new-password" onfocus="makeCharacterShy(true)" onblur="makeCharacterShy(false)" oninput="checkPasswordStrength('new-password', 'strength-bar-1', 'strength-text-1')" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:border-black dark:focus:border-white transition text-xs text-gray-900 dark:text-gray-100" placeholder="請輸入新密碼">
+                    
+                    <div class="mt-2 space-y-1">
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                            <div id="strength-bar-1" class="h-full bg-red-500 transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <p id="strength-text-1" class="text-[10px] text-gray-400">強度：尚未輸入 (至少 8 碼，須含大小寫英文及數字)</p>
+                    </div>
+                </div>
+                
+                <div class="mb-5">
+                    <label class="block text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider font-medium mb-1.5">確認新密碼</label>
+                    <input type="password" id="confirm-password" onfocus="makeCharacterShy(true)" onblur="makeCharacterShy(false)" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:border-black dark:focus:border-white transition text-xs text-gray-900 dark:text-gray-100" placeholder="請再次輸入新密碼">
+                </div>
+
+                <button onclick="handleForceChangePassword()" class="w-full bg-black dark:bg-white text-white dark:text-black font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition mb-4 text-xs">確認修改並進入系統</button>
+                <p id="pw-message" class="mt-2 text-center text-xs text-red-500"></p>
+            </div>
+
         </div>
 
-        <button onclick="handleForceChangePassword()" class="w-full bg-black dark:bg-white text-white dark:text-black font-medium py-2.5 px-4 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition mb-4 text-xs">確認修改並進入系統</button>
-        <p id="pw-message" class="mt-2 text-center text-xs text-red-500"></p>
     </div>
 
-    <!-- 管理員後台 -->
+    <!-- 管理員後台 (登入後切換顯示) -->
     <div id="admin-dashboard" class="hidden bg-white/95 dark:bg-gray-800/95 backdrop-blur-md p-6 sm:p-8 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl w-full max-w-lg transition-colors duration-200 relative z-10">
         <h1 class="text-2xl font-light mb-4 text-center tracking-wide text-gray-900 dark:text-white">管理員後台</h1>
         <p id="admin-user-info" class="text-gray-500 dark:text-gray-400 text-sm mb-4 text-center"></p>
@@ -740,18 +766,18 @@
         // --- 3. 成功喜悅彈跳與變色動畫邏輯 ---
         function triggerSuccessAnimation(callback) {
             const eyesContainer = document.getElementById('character-eyes');
-            const authCard = document.getElementById('auth-card');
+            const mainLayout = document.getElementById('main-auth-layout');
             
             if (eyesContainer) {
                 eyesContainer.classList.add('success-animate');
             }
-            if (authCard) {
-                authCard.classList.add('success-animate');
+            if (mainLayout) {
+                mainLayout.classList.add('success-animate');
             }
             
             setTimeout(() => {
                 if (eyesContainer) eyesContainer.classList.remove('success-animate');
-                if (authCard) authCard.classList.remove('success-animate');
+                if (mainLayout) mainLayout.classList.remove('success-animate');
                 if (callback) callback();
             }, 600);
         }
@@ -1048,7 +1074,7 @@
 
                     await recordUserLogin(userInput);
                     triggerSuccessAnimation(() => {
-                        document.getElementById('auth-card').classList.add('hidden');
+                        document.getElementById('main-auth-layout').classList.add('hidden');
                         showDashboard(userInput);
                     });
                 }
@@ -1059,10 +1085,12 @@
         }
 
         function checkUserLoginState(user, userInput, inputPassword) {
-            document.getElementById('auth-card').classList.add('hidden');
+            document.getElementById('main-auth-layout').classList.add('hidden');
             const metadata = user.user_metadata || {};
             
             if (metadata.must_change_password === true || inputPassword === '00000000') {
+                document.getElementById('main-auth-layout').classList.remove('hidden');
+                document.getElementById('auth-card').classList.add('hidden');
                 document.getElementById('change-password-card').classList.remove('hidden');
             } else {
                 showDashboard(userInput);
@@ -1070,6 +1098,7 @@
         }
 
         async function showDashboard(userInput) {
+            document.getElementById('main-auth-layout').classList.add('hidden');
             document.getElementById('admin-dashboard').classList.add('hidden');
             document.getElementById('user-dashboard').classList.add('hidden');
             document.getElementById('user-panel-view').classList.add('hidden');
@@ -1790,7 +1819,7 @@
                     html += `<div class="flex flex-col items-start space-y-1"><span class="text-[10px] text-gray-600 dark:text-gray-400 font-medium ml-1">${item.username}</span><div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-2.5 rounded-2xl rounded-tl-none text-xs shadow-sm max-w-[85%] break-words">${item.message}</div><span class="text-[9px] text-gray-500 ml-1">${new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
                 }
                 if (item.reply) {
-                    html += `<div class="flex flex-col items-end space-y-1"><span class="text-[10px] text-gray-500 mr-1">管理員回覆</span><div class="bg-[#9EE862] dark:bg-green-700 text-gray-900 dark:text-white p-2.5 rounded-2xl rounded-tr-none text-xs shadow-sm max-w-[85%] break-words">${item.reply}</div><span class="text-[9px] text-gray-500 ml-1">${new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
+                    html += `<div class="flex flex-col items-end space-y-1"><span class="text-[10px] text-gray-500 dark:text-gray-400 font-medium mr-1">管理員回覆</span><div class="bg-[#9EE862] dark:bg-green-700 text-gray-900 dark:text-white p-2.5 rounded-2xl rounded-tr-none text-xs shadow-sm max-w-[85%] break-words">${item.reply}</div><span class="text-[9px] text-gray-500 mr-1">${new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
                 }
                 return html;
             }).join('');
@@ -1798,44 +1827,52 @@
         }
 
         async function sendAdminReplyToSelectedUser() {
-            const reply = document.getElementById('admin-reply-input').value.trim();
-            if (!reply || !selectedAdminChatUser) return;
-            const { error } = await supabaseClient.from('faq_submissions').insert([{ username: selectedAdminChatUser, reply }]);
+            const replyText = document.getElementById('admin-reply-input').value.trim();
+            if (!replyText || !selectedAdminChatUser) return;
+            const { data: list } = await supabaseClient.from('faq_submissions').select('id').eq('username', selectedAdminChatUser).order('created_at', { ascending: false }).limit(1);
+            if (!list || list.length === 0) return;
+            const targetId = list[0].id;
+            const { error } = await supabaseClient.from('faq_submissions').update({ reply: replyText }).eq('id', targetId);
             if (error) { alert('回覆失敗：' + error.message); return; }
-            document.getElementById('admin-reply-input').value = ''; renderAdminChat();
+            document.getElementById('admin-reply-input').value = '';
+            renderAdminChat();
         }
 
         async function updateNickname() {
-            const nickname = document.getElementById('input-nickname').value.trim();
-            if (!nickname) return;
-            await supabaseClient.auth.updateUser({ data: { nickname } });
-            updateUserDisplayInfo();
+            const newNickname = document.getElementById('input-nickname').value.trim();
+            if (!newNickname) { alert('請輸入暱稱！'); return; }
+            const { error } = await supabaseClient.auth.updateUser({ data: { nickname: newNickname } });
+            if (error) { alert('更新失敗：' + error.message); return; }
             alert('暱稱更新成功！');
+            document.getElementById('input-nickname').value = '';
+            updateUserDisplayInfo();
         }
 
         async function updatePassword() {
-            const password = document.getElementById('set-new-password').value;
-            const strengthCheck = evaluatePasswordStrength(password);
-            if (!strengthCheck.valid) {
-                alert('密碼強度不足，無法變更：' + strengthCheck.text);
-                return;
-            }
-            const { error } = await supabaseClient.auth.updateUser({ password });
-            if (error) {
-                alert('密碼修改失敗：' + error.message);
-            } else {
-                alert('密碼修改成功！');
-                document.getElementById('set-new-password').value = '';
-            }
+            const newPw = document.getElementById('set-new-password').value;
+            const strengthCheck = evaluatePasswordStrength(newPw);
+            if (!strengthCheck.valid) { alert('新密碼強度不足：' + strengthCheck.text); return; }
+            const { error } = await supabaseClient.auth.updateUser({ password: newPw });
+            if (error) { alert('更改密碼失敗：' + error.message); return; }
+            alert('密碼更改成功！');
+            document.getElementById('set-new-password').value = '';
         }
 
-        function backToDashboard() { showDashboard(currentUsername); }
-        async function logout() { 
+        function resetPassword() {
+            alert('若要重設密碼，請聯繫管理員協助重設為預設密碼 (00000000)。');
+        }
+
+        function logout() {
             localStorage.removeItem('is_impersonating');
             localStorage.removeItem('impersonated_user');
             localStorage.removeItem('impersonator_admin');
-            await supabaseClient.auth.signOut(); 
-            location.reload(); 
+            supabaseClient.auth.signOut().then(() => {
+                location.reload();
+            });
+        }
+
+        function backToDashboard() {
+            showDashboard(currentUsername);
         }
     </script>
 </body>
